@@ -31,3 +31,20 @@ Other parametrizations, which explicitly use the bitwidth, consistently perform 
 We confirm our findings with experiments on CIFAR-10 and ImageNet and we obtain mixed 
 precision DNNs with learned quantization parameters, achieving state-of-the-art performance. 
 
+### [**ALL FOR ONE AND ONE FOR ALL:IMPROVING MUSIC SEPARATION BY BRIDGING NETWORKS**](https://arxiv.org/abs/2010.04228) ([Code](./x-umx))
+NNabla implementation of __CrossNet-Open-Unmix (X-UMX)__ is an improved version of [Open-Unmix (UMX)](https://github.com/sigsep/open-unmix-nnabla)  for music source separation. X-UMX achieves an improved performance without additional learnable parameters compared to the original UMX model. Details of X-UMX can be found in [our paper](https://arxiv.org/abs/2010.04228).
+
+__Related Projects:__  x-umx | [open-unmix-nnabla](https://github.com/sigsep/open-unmix-nnabla) | [open-unmix-pytorch](https://github.com/sigsep/open-unmix-pytorch) | [musdb](https://github.com/sigsep/sigsep-mus-db) | [museval](https://github.com/sigsep/sigsep-mus-eval) | [norbert](https://github.com/sigsep/norbert)
+
+## The Model
+
+![](x-umx/imgs/umx-network-vs-x-umx-network.png)
+
+As shown in Figure (b), __X-UMX__ has almost the same architecture as the original UMX, 
+but only differs by two additional average operations that link the instrument models together. 
+Since these operations are not DNN layers, the number of learnable parameters of __X-UMX__ is 
+the same as for the original UMX and also the computational complexity is almost the same. 
+Besides the model, there are two more differences compared to the original UMX. In particular, 
+Multi Domain Loss (MDL) and a Combination Loss (CL) are used during training, which are different 
+from the original loss function of UMX. Hence, these three contributions, i.e., (i) Crossing architecture, 
+(ii) MDL and (iii) CL, make the original UMX more effective and successful without additional learnable parameters.

@@ -28,7 +28,7 @@ For installation we recommend to use the [Anaconda](https://anaconda.org/) pytho
 ## Source separation with pretrained model
 
 ### How to separate using pre-trained X-UMX
-Download [here](https://nnabla.org/pretrained-models/x-umx/x-umx.h5) a pre-trained model of X-UMX which results in the scores given in [our paper](https://arxiv.org/pdf/2010.04228.pdf).
+Download [here](https://nnabla.org/pretrained-models/ai-research-code/x-umx/x-umx.h5) a pre-trained model of X-UMX which results in the scores given in [our paper](https://arxiv.org/pdf/2010.04228.pdf).
 The model was trained on the [MUSDB18](https://sigsep.github.io/datasets/musdb.html) dataset.
 
 In order to use it, please use the following command:

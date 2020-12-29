@@ -1,3 +1,17 @@
+# Copyright (c) 2021 Sony Corporation. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import nnabla as nn
 import nnabla.solvers as S
@@ -16,6 +30,12 @@ seed(42)
 
 
 def train():
+    # Check NNabla version
+    from utils import get_nnabla_version_integer
+    if get_nnabla_version_integer() < 11500:
+        raise ValueError(
+            'This does not work with nnabla version less than 1.15.0 due to [a bug](https://github.com/sony/nnabla/pull/760). Please update the nnabla version.')
+
     parser, args = get_train_args()
 
     # Get context.
@@ -26,7 +46,7 @@ def train():
 
     # Monitors
     # setting up monitors for logging
-    monitor_path = './nnmonitor-' + args.output
+    monitor_path = args.output
     monitor = Monitor(monitor_path)
 
     monitor_best_epoch = MonitorSeries(

@@ -1,3 +1,17 @@
+# Copyright (c) 2021 Sony Corporation. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import nnabla as nn
 from nnabla.parameter import get_parameter_or_create
 import nnabla.functions as F
@@ -31,6 +45,75 @@ def STFT(x, n_fft=4096, n_hop=1024, center=True):
                      )
 
     return real, imag
+
+
+def istft(y_r, y_i, window_size, stride, fft_size, window_type='hanning', center=True):
+    '''Workaround wrapper of ISTFT for fixing a bug in nnabla<=1.15.0
+    '''
+    from utils import get_nnabla_version_integer
+    if get_nnabla_version_integer() > 11500:
+        return F.istft(**locals())
+    import numpy as np
+    from nnabla.parameter import get_parameter, get_parameter_or_create
+    conv_cos = get_parameter('conv_cos')
+    conv_sin = get_parameter('conv_sin')
+
+    if conv_cos is None or conv_sin is None:
+        if window_type == 'hanning':
+            window_func = np.hanning(window_size + 1)[:-1]
+        elif window_type == 'hamming':
+            window_func = np.hamming(window_size + 1)[:-1]
+        elif window_type == 'rectangular' or window_type is None:
+            window_func = np.ones(window_size)
+        else:
+            raise ValueError("Unknown window type {}.".format(window_type))
+
+        # pad window if `fft_size > window_size`
+        if fft_size > window_size:
+            diff = fft_size - window_size
+            window_func = np.pad(
+                window_func, (diff//2, diff - diff//2), mode='constant')
+        elif fft_size < window_size:
+            raise ValueError(
+                "FFT size has to be as least as large as window size.")
+
+        # compute inverse STFT filter coefficients
+        if fft_size % stride != 0:
+            raise ValueError("FFT size needs to be a multiple of stride.")
+
+        inv_window_func = np.zeros_like(window_func)
+        for s in range(0, fft_size, stride):
+            inv_window_func += np.roll(np.square(window_func), s)
+
+        mat_cos = np.zeros((fft_size//2 + 1, 1, fft_size))
+        mat_sin = np.zeros((fft_size//2 + 1, 1, fft_size))
+
+        for w in range(fft_size//2+1):
+            alpha = 1.0 if w == 0 or w == fft_size//2 else 2.0
+            alpha /= fft_size
+            for t in range(fft_size):
+                mat_cos[w, 0, t] = alpha * \
+                    np.cos(2. * np.pi * w * t / fft_size)
+                mat_sin[w, 0, t] = alpha * \
+                    np.sin(2. * np.pi * w * t / fft_size)
+        mat_cos = mat_cos * window_func / inv_window_func
+        mat_sin = mat_sin * window_func / inv_window_func
+
+        conv_cos = get_parameter_or_create(
+            'conv_cos', initializer=mat_cos, need_grad=False)
+        conv_sin = get_parameter_or_create(
+            'conv_sin', initializer=mat_sin, need_grad=False)
+
+    # compute inverse STFT
+    x_cos = F.deconvolution(y_r, conv_cos, stride=(stride,))
+    x_sin = F.deconvolution(y_i, conv_sin, stride=(stride,))
+
+    x = F.reshape(x_cos - x_sin, (x_cos.shape[0], x_cos.shape[2]))
+
+    if center:
+        x = x[:, fft_size//2:-fft_size//2]
+
+    return x
 
 
 def Spectrogram(real, imag, power=1, mono=True):
@@ -299,7 +382,7 @@ class OpenUnmix_CrossNet():
                 pred_r, (4*nb_samples*nb_channels, 2049, nb_frames))
             pred_i = F.reshape(
                 pred_i, (4*nb_samples*nb_channels, 2049, nb_frames))
-            pred = F.istft(pred_r, pred_i, self.n_fft, self.n_hop,
+            pred = istft(pred_r, pred_i, self.n_fft, self.n_hop,
                            self.n_fft, window_type='hanning', center=True)
             pred = F.reshape(pred, (4, nb_samples, nb_channels, -1))
 

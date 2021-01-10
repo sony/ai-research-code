@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from tqdm import trange
 from pathlib import Path
 import warnings
 import norbert
@@ -24,6 +25,7 @@ from nnabla.ext_utils import get_extension_context
 from args import get_inference_args
 import model
 
+os.environ['NNABLA_CUDNN_ALGORITHM_BY_HEURISTIC'] = str(1)
 
 def istft(X, rate=44100, n_fft=4096, n_hopsize=1024):
     _, audio = scipy.signal.istft(
@@ -34,7 +36,6 @@ def istft(X, rate=44100, n_fft=4096, n_hopsize=1024):
         boundary=True
     )
     return audio
-
 
 def separate(
     audio,
@@ -160,15 +161,30 @@ def test():
             # if we have mono, let's duplicate it
             # as the input of OpenUnmix is always stereo
             audio = np.repeat(audio, 2, axis=1)
+        
+        # split and separate sources using moving window protocol for each chunk of audio
+        # chunk duration must be lower for machines with low memory 
+        chunk_size = rate * args.chunk_dur
+        if (audio.shape[0] % chunk_size) == 0:
+            nchunks = (audio.shape[0] // chunk_size)
+        else:
+            nchunks = (audio.shape[0] // chunk_size) + 1
 
-        estimates = separate(
-            audio,
-            model_path=args.model,
-            niter=args.niter,
-            alpha=args.alpha,
-            softmask=args.softmask,
-            residual_model=args.residual_model
-        )
+        estimates = {}
+        for chunk_idx in trange(nchunks):
+            cur_chunk = audio[chunk_idx * chunk_size : min((chunk_idx+1) * chunk_size, audio.shape[0]),:]            
+            cur_estimates = separate(
+                cur_chunk,
+                model_path=args.model,
+                niter=args.niter,
+                alpha=args.alpha,
+                softmask=args.softmask,
+                residual_model=args.residual_model)            
+            if any(estimates) is False:
+                estimates = cur_estimates
+            else:
+                for key in cur_estimates.keys():
+                    estimates[key] = np.concatenate((estimates[key], cur_estimates[key]), axis = 0)            
 
         if not args.outdir:
             model_path = Path(args.model)

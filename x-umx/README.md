@@ -33,14 +33,14 @@ The model was trained on the [MUSDB18](https://sigsep.github.io/datasets/musdb.h
 
 In order to use it, please use the following command:
 ```python
-python test.py  --inputs [Input mixture (*.wav)] --model {path to downloaded x-umx.h5 weights file} --outdir ./results/
+python test.py  --inputs [Input mixture (*.wav)] --model {path to downloaded x-umx.h5 weights file} --context cpu --chunk-dur 10 --outdir ./results/ 
 ```
 
-Please note that our X-UMX integrates the different instrument networks of the original UMX by a crossing operation, and thus X-UMX requires more memory. Hence, it maybe difficult to run the model on smaller GPU, and thus the above example uses the option `--context cpu`.
+Please note that our X-UMX integrates the different instrument networks of the original UMX by a crossing operation, and thus X-UMX requires more memory. So, it maybe difficult to run the model on smaller GPU. So, though default choice is GPU inference, above example uses the option `--context cpu`. Also note that because memory requirement is high, we suggest users to set `--chunk-dur` with values appropriate for each computer. It is used to break audio into smaller chunks, separate sources and stitch them back together. If your inference crashes, kindly reduce chunk duration and try again.
 
 ## Evaluation using `museval`
 
-To perform evaluation in comparison to other SISEC systems, you would need to install the `museval` package using
+To perform evaluation in comparison to other SiSEC systems, you would need to install the `museval` package using
 
 ```
 pip install museval

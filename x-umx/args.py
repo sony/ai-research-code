@@ -104,6 +104,8 @@ def get_inference_args():
                         help='model sample rate')
     parser.add_argument('--residual-model', action='store_true',
                         help='create a model for the residual')
+    parser.add_argument('--chunk-dur', type=int, default=30,
+                        help='window length in seconds - reduce this if inference fails with SegFault')
 
     args, _ = parser.parse_known_args()
 

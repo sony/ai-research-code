@@ -19,6 +19,7 @@ from nnabla.ext_utils import get_extension_context, import_extension_module
 from nnabla.utils.data_iterator import data_iterator
 from nnabla.monitor import Monitor, MonitorSeries, MonitorTimeElapsed
 from numpy.random import RandomState, seed
+from tqdm import trange
 from loss import mse_loss, sdr_loss
 from lr_scheduler import ReduceLROnPlateau
 from comm import CommunicatorWrapper
@@ -28,6 +29,7 @@ from data import load_datasources
 import utils
 seed(42)
 
+os.environ['NNABLA_CUDNN_ALGORITHM_BY_HEURISTIC'] = str(1)
 
 def train():
     # Check NNabla version
@@ -157,7 +159,7 @@ def train():
     best_epoch = 0
 
     # Training loop.
-    for epoch in range(args.epochs):
+    for epoch in trange(args.epochs):
         # TRAINING
         losses = utils.AverageMeter()
         for batch in range(max_iter):

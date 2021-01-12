@@ -17,3 +17,4 @@ dependencies:
     - resampy
     - nnabla
     - nnabla-ext-cuda100
+    - pydub

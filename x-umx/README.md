@@ -2,6 +2,12 @@
 
 This repository contains the NNabla implementation of __CrossNet-Open-Unmix (X-UMX)__, an improved version of [Open-Unmix (UMX)](https://github.com/sigsep/open-unmix-nnabla)  for music source separation. X-UMX achieves an improved performance without additional learnable parameters compared to the original UMX model. Details of X-UMX can be found in [our paper](https://arxiv.org/abs/2010.04228).
 
+## Quick Music Source Separation Demo by X-UMX
+
+From the Colab link below, you can try using X-UMX to generate and listen to separated audio sources of your audio music file. Please give it a try!
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/sony/ai-research-code/blob/master/x-umx/X-UMX.ipynb)
+
 __Related Projects:__  x-umx | [open-unmix-nnabla](https://github.com/sigsep/open-unmix-nnabla) | [open-unmix-pytorch](https://github.com/sigsep/open-unmix-pytorch) | [musdb](https://github.com/sigsep/sigsep-mus-db) | [museval](https://github.com/sigsep/sigsep-mus-eval) | [norbert](https://github.com/sigsep/norbert)
 
 ## The Model
@@ -33,7 +39,7 @@ The model was trained on the [MUSDB18](https://sigsep.github.io/datasets/musdb.h
 
 In order to use it, please use the following command:
 ```python
-python test.py  --inputs [Input mixture (*.wav)] --model {path to downloaded x-umx.h5 weights file} --context cpu --chunk-dur 10 --outdir ./results/ 
+python test.py  --inputs [Input mixture (any audio format supported by FFMPEG)] --model {path to downloaded x-umx.h5 weights file} --context cpu --chunk-dur 10 --outdir ./results/ 
 ```
 
 Please note that our X-UMX integrates the different instrument networks of the original UMX by a crossing operation, and thus X-UMX requires more memory. So, it maybe difficult to run the model on smaller GPU. So, though default choice is GPU inference, above example uses the option `--context cpu`. Also note that because memory requirement is high, we suggest users to set `--chunk-dur` with values appropriate for each computer. It is used to break audio into smaller chunks, separate sources and stitch them back together. If your inference crashes, kindly reduce chunk duration and try again.
@@ -70,7 +76,7 @@ Training (Single/Distributed training) can be started using below commands.
 ### Single GPU training
 
 ```python
-python train.py --root [Path of MUSDB18] --is-wav --output [Path to save weights]
+python train.py --root [Path of MUSDB18] --output [Path to save weights]
 ```
 
 ### Distributed Training
@@ -80,8 +86,10 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3 {device ids that you want to use}
 ```
 
 ```python
-mpirun -n {no. of devices} python train.py --root [Path of MUSDB18] --is-wav --output [Path to save weights]
+mpirun -n {no. of devices} python train.py --root [Path of MUSDB18] --output [Path to save weights]
 ```
+
+Please note that above sample training scripts will work on high quality 'STEM' or low quality 'MP4 files'. In case you would like faster data loading, kindly look at [more details here](https://github.com/sigsep/sigsep-mus-db#using-wav-files-optional) to generate decoded 'WAV' files. In that case, please use `--is-wav` flag for training.
 
 Training `MUSDB18` using _x-umx_ comes with several design decisions that we made as part of our defaults to improve efficiency and performance:
 
@@ -95,7 +103,7 @@ Some of the parameters for the MUSDB sampling can be controlled using the follow
 
 | Argument      | Description                                                            | Default      |
 |---------------------|-----------------------------------------------|--------------|
-| `--is-wav`          | loads the decoded WAVs instead of STEMS for faster data loading. See [more details here](https://github.com/sigsep/sigsep-mus-db#using-wav-files-optional). | `True`      |
+| `--is-wav`          | loads the decoded WAVs instead of STEMS for faster data loading. See [more details here](https://github.com/sigsep/sigsep-mus-db#using-wav-files-optional). | `False`      |
 | `--samples-per-track <int>` | sets the number of samples that are randomly drawn from each track  | `64`       |
 | `--source-augmentations <list[str]>` | applies augmentations to each audio source before mixing | `gain channelswap`       |
 

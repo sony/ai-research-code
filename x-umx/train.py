@@ -18,6 +18,7 @@ import nnabla.solvers as S
 from nnabla.ext_utils import get_extension_context, import_extension_module
 from nnabla.utils.data_iterator import data_iterator
 from nnabla.monitor import Monitor, MonitorSeries, MonitorTimeElapsed
+from nnabla.parameter import get_parameter_or_create
 from numpy.random import RandomState, seed
 from tqdm import trange
 from loss import mse_loss, sdr_loss
@@ -29,14 +30,12 @@ from data import load_datasources
 import utils
 seed(42)
 
-os.environ['NNABLA_CUDNN_ALGORITHM_BY_HEURISTIC'] = str(1)
 
 def train():
     # Check NNabla version
-    from utils import get_nnabla_version_integer
-    if get_nnabla_version_integer() < 11500:
+    if utils.get_nnabla_version_integer() < 11700:
         raise ValueError(
-            'This does not work with nnabla version less than 1.15.0 due to [a bug](https://github.com/sony/nnabla/pull/760). Please update the nnabla version.')
+            'This does not work with nnabla version less than 1.17.0 due to [a bug](https://github.com/sony/nnabla-ext-cuda/pull/288). Please update the nnabla version.')
 
     parser, args = get_train_args()
 
@@ -99,7 +98,13 @@ def train():
 
     print("max_iter", max_iter)
 
-    scaler_mean, scaler_std = utils.get_statistics(args, train_source)
+    # Load stats saved by `save_stats.py`
+    with nn.parameter_scope('stats'):
+        nn.load_parameters(args.stats)
+        input_mean = get_parameter_or_create('input_mean', shape=(args.nfft // 2 + 1,))
+        input_scale = get_parameter_or_create('input_scale', shape=(args.nfft // 2 + 1,))
+        scaler_mean, scaler_std = input_mean.d, input_scale.d
+        nn.clear_parameters()
 
     max_bin = utils.bandwidth_to_max_bin(
         train_source.sample_rate, args.nfft, args.bandwidth
@@ -216,12 +221,6 @@ def train():
             monitor_validation_loss.add(epoch, validation_loss)
             monitor_lr.add(epoch, lr)
             monitor_time.add(epoch)
-
-            # save current model and states
-            nn.save_parameters(os.path.join(
-                args.output, 'checkpoint_xumx.h5'))
-            solver.save_states(os.path.join(
-                args.output, 'xumx_states.h5'))
 
             if validation_loss == es.best:
                 # save best model

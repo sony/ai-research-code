@@ -26,6 +26,8 @@ def get_train_args():
     parser.add_argument('--sources', type=str, nargs='+',
                         default=['bass', 'drums', 'vocals', 'other'],
                         help='List of target sources to be trained')
+    parser.add_argument('--stats', type=str, default='./stats.h5', help='path of stats.h5')
+
 
     # Trainig Parameters
     parser.add_argument('--epochs', type=int, default=1000)

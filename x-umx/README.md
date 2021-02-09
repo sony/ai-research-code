@@ -8,7 +8,7 @@ From the Colab link below, you can try using X-UMX to generate and listen to sep
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/sony/ai-research-code/blob/master/x-umx/X-UMX.ipynb)
 
-__Related Projects:__  x-umx | [open-unmix-nnabla](https://github.com/sigsep/open-unmix-nnabla) | [open-unmix-pytorch](https://github.com/sigsep/open-unmix-pytorch) | [musdb](https://github.com/sigsep/sigsep-mus-db) | [museval](https://github.com/sigsep/sigsep-mus-eval) | [norbert](https://github.com/sigsep/norbert)
+__Related Projects:__  x-umx | [open-unmix-nnabla](https://github.com/sigsep/open-unmix-nnabla) | [open-unmix-pytorch](https://github.com/sigsep/open-unmix-pytorch) | [musdb](https://github.com/sigsep/sigsep-mus-db) | [museval](https://github.com/sigsep/sigsep-mus-eval) | [norbert](https://github.com/sigsep/norbert) | [sigsep-mus-io](https://github.com/sigsep/sigsep-mus-io)
 
 ## The Model
 
@@ -24,6 +24,13 @@ from the original loss function of UMX. Hence, these three contributions, i.e., 
 (ii) MDL and (iii) CL, make the original UMX more effective and successful without additional learnable parameters.
 
 ## Getting started
+
+## Prerequisites
+* nnabla >= v1.17.0
+* musdb
+* norbert
+* resampy
+* ffmpeg
 
 ### Installation
 
@@ -71,12 +78,28 @@ To directly train _x-umx_, we first would need to download the dataset and place
 
 Also note that, if `--root` is not specified, we automatically download a 7 second preview version of the MUSDB18 dataset. While this is comfortable for testing purposes, we wouldn't recommend to actually train your model on this.
 
-Training (Single/Distributed training) can be started using below commands.
+#### Using WAV files
+
+All files from the MUSDB18 dataset are encoded in the Native Instruments stems format (.mp4). If you want to use WAV files (e.g. for faster audio decoding), `musdb` also supports parsing and processing pre-decoded PCM/wav files. Downloaded STEMS dataset (.mp4) can be decoded into WAV version either by [docker based solution or running scripts manually as shown here](https://github.com/sigsep/sigsep-mus-io).
+
+__When you use the decoded MUSDB18 dataset (WAV version), use the `--is-wav` argument while running train.py.__
+
+
+For the sake of optimization, we have decoupled statistics computation from training. So, first pre-compute the statistics of the dataset (which can be loaded during the training later) and save them by running the below script.
+```python
+python save_stats.py --root [Path of MUSDB18]
+```
 
 ### Single GPU training
 
+#### For encoded MUSDB18 STEMS version
 ```python
 python train.py --root [Path of MUSDB18] --output [Path to save weights]
+```
+
+#### For decoded MUSDB18 WAV version
+```python
+python train.py --root [Path of MUSDB18] --output [Path to save weights] --is-wav
 ```
 
 ### Distributed Training
@@ -85,8 +108,14 @@ For distributed training [install NNabla package compatible with Multi-GPU execu
 export CUDA_VISIBLE_DEVICES=0,1,2,3 {device ids that you want to use}
 ```
 
+#### For encoded MUSDB18 STEMS version
 ```python
 mpirun -n {no. of devices} python train.py --root [Path of MUSDB18] --output [Path to save weights]
+```
+
+#### For decoded MUSDB18 WAV version
+```python
+mpirun -n {no. of devices} python train.py --root [Path of MUSDB18] --output [Path to save weights] --is-wav
 ```
 
 Please note that above sample training scripts will work on high quality 'STEM' or low quality 'MP4 files'. In case you would like faster data loading, kindly look at [more details here](https://github.com/sigsep/sigsep-mus-db#using-wav-files-optional) to generate decoded 'WAV' files. In that case, please use `--is-wav` flag for training.

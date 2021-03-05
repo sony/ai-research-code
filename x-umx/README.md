@@ -84,12 +84,6 @@ All files from the MUSDB18 dataset are encoded in the Native Instruments stems f
 
 __When you use the decoded MUSDB18 dataset (WAV version), use the `--is-wav` argument while running train.py.__
 
-
-For the sake of optimization, we have decoupled statistics computation from training. So, first pre-compute the statistics of the dataset (which can be loaded during the training later) and save them by running the below script.
-```python
-python save_stats.py --root [Path of MUSDB18]
-```
-
 ### Single GPU training
 
 #### For encoded MUSDB18 STEMS version

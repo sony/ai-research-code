@@ -18,7 +18,6 @@ import nnabla.solvers as S
 from nnabla.ext_utils import get_extension_context, import_extension_module
 from nnabla.utils.data_iterator import data_iterator
 from nnabla.monitor import Monitor, MonitorSeries, MonitorTimeElapsed
-from nnabla.parameter import get_parameter_or_create
 from numpy.random import RandomState, seed
 from tqdm import trange
 from loss import mse_loss, sdr_loss
@@ -98,13 +97,8 @@ def train():
 
     print("max_iter", max_iter)
 
-    # Load stats saved by `save_stats.py`
-    with nn.parameter_scope('stats'):
-        nn.load_parameters(args.stats)
-        input_mean = get_parameter_or_create('input_mean', shape=(args.nfft // 2 + 1,))
-        input_scale = get_parameter_or_create('input_scale', shape=(args.nfft // 2 + 1,))
-        scaler_mean, scaler_std = input_mean.d, input_scale.d
-        nn.clear_parameters()
+    # Calculate the statistics (mean and variance) of the dataset
+    scaler_mean, scaler_std = utils.get_statistics(args, train_source)
 
     max_bin = utils.bandwidth_to_max_bin(
         train_source.sample_rate, args.nfft, args.bandwidth

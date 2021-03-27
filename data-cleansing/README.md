@@ -1,4 +1,4 @@
-# Data Cleansing
+# Data Cleansing with Storage-efficient Approximation of Influence Functions
 
 This is the code for data cleansing : Data Cleansing for Deep Neural Networks with Storage-efficient Approximation of Influence Functions.
 

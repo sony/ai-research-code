@@ -29,8 +29,6 @@ from args import get_inference_args
 import model
 from utils import bandwidth_to_max_bin
 
-os.environ['NNABLA_CUDNN_ALGORITHM_BY_HEURISTIC'] = str(1)
-
 
 def istft(X, rate=44100, n_fft=4096, n_hopsize=1024):
     _, audio = scipy.signal.istft(

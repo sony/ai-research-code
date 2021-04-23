@@ -32,9 +32,9 @@ seed(42)
 
 def train():
     # Check NNabla version
-    if utils.get_nnabla_version_integer() < 11700:
+    if utils.get_nnabla_version_integer() < 11900:
         raise ValueError(
-            'This does not work with nnabla version less than 1.17.0 due to [a bug](https://github.com/sony/nnabla-ext-cuda/pull/288). Please update the nnabla version.')
+            'Please update the nnabla version to v1.19.0 or latest version since memory efficiency of core engine is improved in v1.19.0')
 
     parser, args = get_train_args()
 

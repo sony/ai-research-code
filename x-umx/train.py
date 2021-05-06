@@ -29,14 +29,12 @@ from data import load_datasources
 import utils
 seed(42)
 
-os.environ['NNABLA_CUDNN_ALGORITHM_BY_HEURISTIC'] = str(1)
 
 def train():
     # Check NNabla version
-    from utils import get_nnabla_version_integer
-    if get_nnabla_version_integer() < 11500:
+    if utils.get_nnabla_version_integer() < 11900:
         raise ValueError(
-            'This does not work with nnabla version less than 1.15.0 due to [a bug](https://github.com/sony/nnabla/pull/760). Please update the nnabla version.')
+            'Please update the nnabla version to v1.19.0 or latest version since memory efficiency of core engine is improved in v1.19.0')
 
     parser, args = get_train_args()
 
@@ -99,6 +97,7 @@ def train():
 
     print("max_iter", max_iter)
 
+    # Calculate the statistics (mean and variance) of the dataset
     scaler_mean, scaler_std = utils.get_statistics(args, train_source)
 
     max_bin = utils.bandwidth_to_max_bin(
@@ -216,12 +215,6 @@ def train():
             monitor_validation_loss.add(epoch, validation_loss)
             monitor_lr.add(epoch, lr)
             monitor_time.add(epoch)
-
-            # save current model and states
-            nn.save_parameters(os.path.join(
-                args.output, 'checkpoint_xumx.h5'))
-            solver.save_states(os.path.join(
-                args.output, 'xumx_states.h5'))
 
             if validation_loss == es.best:
                 # save best model

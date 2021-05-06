@@ -27,8 +27,7 @@ import nnabla as nn
 from nnabla.ext_utils import get_extension_context
 from args import get_inference_args
 import model
-
-os.environ['NNABLA_CUDNN_ALGORITHM_BY_HEURISTIC'] = str(1)
+from utils import bandwidth_to_max_bin
 
 
 def istft(X, rate=44100, n_fft=4096, n_hopsize=1024):
@@ -80,11 +79,12 @@ def separate(
     audio_nn = nn.Variable.from_numpy_array(audio.T[None, ...])
     source_names = []
     V = []
+    max_bin = bandwidth_to_max_bin(sample_rate=44100, n_fft=4096, bandwidth=16000)
 
     sources = ['bass', 'drums', 'vocals', 'other']
     for j, target in enumerate(sources):
         if j == 0:
-            unmix_target = model.OpenUnmix_CrossNet(max_bin=1487)
+            unmix_target = model.OpenUnmix_CrossNet(max_bin=max_bin)
             unmix_target.is_predict = True
             nn.load_parameters(model_path)
             mix_spec, msk, _ = unmix_target(audio_nn, test=True)

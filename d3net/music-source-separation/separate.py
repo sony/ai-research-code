@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Sony Corporation. All Rights Reserved.
+# Copyright 2021 Sony Group Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ def get_args(description=''):
     parser.add_argument('--inputs', '-i', nargs='+', type=str,
                         help='list of input wav files.', required=True)
     parser.add_argument('--model', '-m', type=str,
-                        default='./d3net.h5', help='Path to model file.')
+                        default='./d3net-mss.h5', help='Path to model file.')
     parser.add_argument('--out-dir', '-o', type=str,
                         default='output/', help='output directory')
     parser.add_argument('--context', '-c', type=str,

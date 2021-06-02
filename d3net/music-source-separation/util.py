@@ -145,7 +145,7 @@ def calc_output_overlap_add(inp, hparams, out_ch=None, ch_flip_average=False):
         if ch_flip_average:
             inp_ = np.concatenate([inp_, inp_[:, :, ::-1, :]], axis=0)
 
-        out_ = d3_net(nn.Variable.from_numpy_array(inp_), hparams)
+        out_ = d3_net(nn.Variable.from_numpy_array(inp_), hparams, test=True)
         out_.forward(clear_buffer=True)
         out_ = out_.data.data
 

@@ -175,7 +175,7 @@ def md3_block_ds(inp, in_channels, ks, n_layers, n_blocks, comp_rates, kernel_si
     with nn.parameter_scope(name + '/us_layers'):
         for k, nl, comp, b, i in zip(ks[ds_len + 1:], n_layers[ds_len + 1:], comp_rates[ds_len:], n_blocks[ds_len:], range(ds_len)):
             with nn.parameter_scope('upsample%s' % i):
-                out = upsampling_layer(out, n_channels, comp)
+                out = upsampling_layer(out, n_channels, comp, test)
                 out = F.concatenate(out, ds[cnt], axis=1)
                 cnt += 1
             if comp < 1.:

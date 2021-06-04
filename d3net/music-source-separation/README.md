@@ -2,6 +2,11 @@
 
 This is inference code for D3Net based music source separation.
 
+## Quick Music Source Separation Demo by D3Net
+
+From the Colab link below, you can try using D3Net to generate and listen to separated audio sources of your audio music file. Please give it a try!
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/sony/ai-research-code/blob/master/d3net/music-source-separation/D3Net-MSS.ipynb)
 
 ## Getting started
 

@@ -72,8 +72,8 @@ Identifying the influence of training data for data cleansing can improve the ac
 
 ### [**D3Net: Densely connected multidilated convolutional networks for dense prediction tasks**](https://arxiv.org/abs/2011.11844) ([Code](./d3net))
 
-This is the official NNabla implementation of D3Net, densely connected multidilated convolutional networks for dense prediction tasks which is acceped at CVPR 2021.
+This is the official NNabla implementation of D3Net, densely connected multidilated convolutional networks for dense prediction tasks which is accepted at CVPR 2021.
 
->Takahashi, Naoya, and Yuki Mitsufuji. "Densely connected multidilated convolutional networks for dense prediction tasks." arXiv preprint arXiv:2011.11844 (2020).
+>Takahashi, Naoya, and Yuki Mitsufuji. "Densely connected multidilated convolutional networks for dense prediction tasks." arXiv preprint [arXiv:2011.11844](https://arxiv.org/abs/2011.11844) (2021).
 
 Tasks that involve high-resolution dense prediction require a modeling of both local and galobal patterns in a large input field. Although the local and global structures often depend on each other and their simultaneous modeling is important, many convolutional neural network (CNN)- based approaches interchange representations in different resolutions only a few times. In this paper, we claim the importance of a dense simultaneous modeling of multiresolution representation and propose a novel CNN architecture called densely connected multidilated DenseNet (D3Net). D3Net involves a novel multidilated convolution that has different dilation factors in a single layer to model different resolutions simultaneously. By combining the multidilated convolution with the DenseNet architecture, D3Net incorporates multiresolution learning with an exponentially growing receptive field in almost all layers, while avoiding the aliasing problem that occurs when we naively incorporate the dilated convolution in DenseNet. Experiments on the image semantic segmentation task using Cityscapes and the audio source separation task using MUSDB18 show that the proposed method has superior performance over stateof-the-art methods.

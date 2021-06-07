@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import librosa
 import numpy as np
 import nnabla as nn
 import soundfile as sf
+import librosa
+from pydub import AudioSegment
+from pydub.utils import mediainfo
 from model import d3_net
 
 
@@ -32,11 +33,13 @@ def generate_data(file_name, fft_size, hop_size, n_channels):
       `sample_rate`  :  sample_rate of the input audio
       `data`   :  STFT of the input audio with size `NumFrames x NumChannels x NumBins` (complex-valued) 
     '''
-    if '.wav' in os.path.basename(file_name):
-        audio, sample_rate = sf.read(file_name)
-
-    if audio.ndim == 1:
-        audio = np.expand_dims(audio, axis=1)
+    # get audio data from the path - all formats recognized by FFMPEG are recognized
+    audio_with_meta = AudioSegment.from_file(file_name)
+    sample_rate = int(mediainfo(file_name)['sample_rate'])
+    channel_sounds = audio_with_meta.split_to_mono()
+    samples = [s.get_array_of_samples() for idx, s in enumerate(channel_sounds) if idx < 2]
+    fp_arr = np.array(samples).T.astype(np.float32)
+    audio = fp_arr / np.iinfo(samples[0].typecode).max
 
     # loop over all channels and compute sequence
     for i in range(audio.shape[1]):

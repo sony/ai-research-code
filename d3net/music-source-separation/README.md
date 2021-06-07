@@ -13,6 +13,7 @@ From the Colab link below, you can try using D3Net to generate and listen to sep
 ## Prerequisites
 * nnabla 
 * librosa
+* pydub
 * numpy
 * soundfile
 * yaml
@@ -21,13 +22,12 @@ From the Colab link below, you can try using D3Net to generate and listen to sep
 
 Download the pre-trained D3Net model for Music Source Separation [here](https://nnabla.org/pretrained-models/ai-research-code/d3net/mss/d3net-mss.h5).
 
-Run the below command for inference:
+Run the below inference command for a sample audio file `test.wav` in current directory:
 ```python
- # Assuming test.wav file in the current directory.
  python ./separate.py -i ./test.wav -o output/ -m d3net-mss.h5 -c cudnn
  ```
-Arguments
--i : Input files (Multiple wave files can be specified.)  
+Arguments:  
+-i : Input files. (Any audio format files supported by FFMPEG.)  
 -o : Output directory. (Output folder path to save separated instruments)  
 -m : Model file. (Pre-trained model)  
 -c : Context. (Extension modules : `cpu` or `cudnn`)

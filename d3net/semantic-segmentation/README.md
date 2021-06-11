@@ -1,6 +1,12 @@
 # D3Net (Semantic Segmentation)
 This is NNabla implementation of D3Net based semantic segmentation.
 
+## Quick Semantic Segmentation Demo by D3Net
+
+From the Colab link below, you can try running D3Net (D3Net-L/D3Net-S) to generate semantic segmentation outputs for sample input images. Please give it a try!
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/sony/ai-research-code/blob/master/d3net/semantic-segmentation/D3Net-Semantic-Segmentation.ipynb)
+
 ## Getting started
 
 ## Prerequisites
@@ -10,7 +16,7 @@ This is NNabla implementation of D3Net based semantic segmentation.
 * PyYAML >= 5.3
 
 ## Inference: Semantic segmentation with pretrained model
-We consider two D3Net models for Semantic Segmentation. The smaller architecture, denoted as D3Net-S, employs D3 blocks of (M, L, k, c) =(4, 8, 36, 0.2), while the larger architecture, D3Net-L, uses D3 blocks of (M, L, k, c) = (4, 10, 64, 0.2). Download the pre-trained weights from the links provided in the below table:
+We provide two D3Net models for Semantic Segmentation. The smaller architecture, denoted as D3Net-S, employs D3 blocks of (M, L, k, c) =(4, 8, 36, 0.2), while the larger architecture, D3Net-L, uses D3 blocks of (M, L, k, c) = (4, 10, 64, 0.2). Download the pre-trained weights from the links provided in the below table:
 
 ### Pre-trained Weights
 | D3Net-L | D3Net-S |

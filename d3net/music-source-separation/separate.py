@@ -75,7 +75,7 @@ def get_args(description=''):
     parser = argparse.ArgumentParser(description)
 
     parser.add_argument('--inputs', '-i', nargs='+', type=str,
-                        help='list of input wav files.', required=True)
+                        help='List of input audio files supported by FFMPEG.', required=True)
     parser.add_argument('--model', '-m', type=str,
                         default='./d3net-mss.h5', help='Path to model file.')
     parser.add_argument('--out-dir', '-o', type=str,

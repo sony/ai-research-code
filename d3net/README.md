@@ -5,7 +5,7 @@ which is accepted at CVPR 2021.
 
 D3Net is demonstrated on the Music Source Separation and Semantic Segmentation tasks. Please follow the links below to explore inference code and pre-trained models:
 * [Music Source Separation](./music-source-separation)
-* Semantic Segmentation (**coming soon**)
+* [Semantic Segmentation](./semantic-segmentation)
 
 ## Citation
 ```

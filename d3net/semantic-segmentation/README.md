@@ -23,6 +23,8 @@ We provide two D3Net models for Semantic Segmentation. The smaller architecture,
 |---|---|
 |[D3Net-L weights](https://nnabla.org/pretrained-models/ai-research-code/d3net/semantic-segmentation/D3Net-L.h5)|[D3Net-S weights](https://nnabla.org/pretrained-models/ai-research-code/d3net/semantic-segmentation/D3Net-S.h5)|
 
+Please Note : Pre-trained weights are from the model trained on `CityScapes` dataset. So, these models expect CityScapes-like input images for best results.
+
 Run the below command for D3Net-L inference:
 ```python
  # Assuming test.jpg file in the current directory.

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 '''
-D3Net semantic segmentation inferenece code
+D3Net Semantic Segmentation Inferenece Code
 '''
 
 import argparse
@@ -26,7 +26,7 @@ from util import get_segmentation
 
 def run_segmentation(args):
     '''
-    Run D3Net semantic segmentation inferenece
+    Run D3Net Semantic Segmentation Inferenece
     '''
     # Set NNabla extention
     ctx = get_extension_context(args.context)
@@ -35,7 +35,7 @@ def run_segmentation(args):
     # Load the model weights
     nn.load_parameters(args.model)
 
-    # Load D3Net Hyper parameters
+    # Load D3Net Hyper parameters (D3Net-L or D3Net-S)
     with open(args.config_file) as file:
         hparams = yaml.load(file, Loader=yaml.FullLoader)
 
@@ -45,7 +45,7 @@ def run_segmentation(args):
     cv2.imwrite('./result.jpg', segmented_img)
 
 
-def get_args(description=''):
+def get_args(description='D3Net Semantic Segmentation Inference'):
     '''
     Get command line arguments.
     Arguments set the default values of command line arguments.

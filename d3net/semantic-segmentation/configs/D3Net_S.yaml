@@ -1,3 +1,4 @@
+batch_size: 8
 num_init_features: 64
 num_layers: [4, 4, 4, 4]
 n_blocks: [8, 8, 8, 8]
@@ -8,13 +9,16 @@ trans_comp_factor: 2
 dense_n_out_layer_block: [4, 4, 4, 4]
 dilation: [True, True, True, True]
 channels: 264
-input_transform: 'resize_concat'
-kernel_size: 1
-num_convs: 1
-concat_input: False
-dropout_ratio: -1
+image_height: 512
+image_width: 1024
 num_classes: 19
-align_corners: False
+max_iter: 80000
+save_interval: 8000
+lr: 0.01
+momentum: 0.9
+weight_decay: 0.0005
+power: 0.9
+min_lr: 0.0001
 mean: [123.675, 116.28, 103.53]
 std: [58.395, 57.12, 57.375]
 palette: [[128, 64, 128], [244, 35, 232], [70, 70, 70], [102, 102, 156], [190, 153, 153], [153, 153, 153], [250, 170, 30], [220, 220, 0], [107, 142, 35], [152, 251, 152], [70, 130, 180], [220, 20, 60], [255, 0, 0], [0, 0, 142], [0, 0, 70], [0, 60, 100], [0, 80, 100], [0, 0, 230], [119, 11, 32]]

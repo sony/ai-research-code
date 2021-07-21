@@ -9,10 +9,11 @@ dependencies:
   - tqdm=4.28
   - scikit-learn=0.21
   - ffmpeg
-  - pip
+  - libsndfile
   - pip:
     - musdb
     - norbert
     - resampy
     - nnabla
     - pydub
+    - soundfile

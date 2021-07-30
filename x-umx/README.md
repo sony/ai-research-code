@@ -49,7 +49,7 @@ In order to use it, please use the following command:
 python test.py  --inputs [Input mixture (any audio format supported by FFMPEG)] --model {path to downloaded x-umx.h5 weights file} --context cpu --chunk-dur 10 --outdir ./results/ 
 ```
 
-Please note that our X-UMX integrates the different instrument networks of the original UMX by a crossing operation, and thus X-UMX requires more memory. So, it maybe difficult to run the model on smaller GPU. So, though default choice is GPU inference, above example uses the option `--context cpu`. Also note that because memory requirement is high, we suggest users to set `--chunk-dur` with values appropriate for each computer. It is used to break audio into smaller chunks, separate sources and stitch them back together. If your inference crashes, kindly reduce chunk duration and try again.
+Please note that our X-UMX integrates the different instrument networks of the original UMX by a crossing operation, and thus X-UMX requires more memory. So, it maybe difficult to run the model on smaller GPU. So, though default choice is GPU inference, above example uses the option `--context cpu`. To run GPU inference, use the option `--context cudnn`. Also note that because memory requirement is high, we suggest users to set `--chunk-dur` with values appropriate for each computer. It is used to break audio into smaller chunks, separate sources and stitch them back together. If your inference crashes, kindly reduce chunk duration and try again.
 
 ## Evaluation using `museval`
 

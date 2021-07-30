@@ -53,7 +53,7 @@ def separate(
     Performing the separation on audio input
     Parameters
     ----------
-    audio: np.ndarray [shape=(nb_samples, nb_channels, nb_timesteps)]
+    audio: np.ndarray [shape=(nb_timesteps, nb_channels)]
         mixture audio
     model_path: str
         path to model folder, defaults to `models/`

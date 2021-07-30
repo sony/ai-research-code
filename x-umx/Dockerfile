@@ -39,6 +39,8 @@ RUN umask 0 \
        norbert \
        resampy \
        sklearn \
+       pydub \
+       soundfile \
     && conda install -c conda-forge -y \
       ffmpeg \
       libsndfile

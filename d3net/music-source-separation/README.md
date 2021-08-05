@@ -28,7 +28,9 @@ Run the below inference command for a sample audio file `test.wav` in current di
 ```python
  python ./separate.py -i ./test.wav -o output/ -m d3net-mss.h5 -c cudnn
  ```
-Inference with openvino:  
+### Inference with [OpenVINO](https://docs.openvinotoolkit.org/)
+OpenVINO is a toolkit for quickly deploying a neural network model with high-performance especially on Intel hardware. It speeds up the D3Net inference on CPUs.
+
 Download and extract the openvino weights [here](https://nnabla.org/pretrained-models/ai-research-code/d3net/mss/d3net-openvino.zip).
 ```bash
  unzip d3net-openvino.zip -d openvino_models

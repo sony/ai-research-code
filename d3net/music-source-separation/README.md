@@ -18,6 +18,8 @@ From the Colab link below, you can try using D3Net to generate and listen to sep
 * soundfile
 * yaml
 
+If you want to do test with openvino, you should also install openvino.
+
 ## Inference: Music source separation with pretrained model
 
 Download the pre-trained D3Net model for Music Source Separation [here](https://nnabla.org/pretrained-models/ai-research-code/d3net/mss/d3net-mss.h5).
@@ -26,10 +28,20 @@ Run the below inference command for a sample audio file `test.wav` in current di
 ```python
  python ./separate.py -i ./test.wav -o output/ -m d3net-mss.h5 -c cudnn
  ```
+Inference with openvino:  
+Download and extract the openvino weights [here](https://nnabla.org/pretrained-models/ai-research-code/d3net/mss/d3net-openvino.zip).
+```bash
+ unzip d3net-openvino.zip -d openvino_models
+ ```
+```python
+ python ./separate.py -i ./test.wav -o output/ -b openvino -ovm ./openvino_models
+ ```
 Arguments:  
 -i : Input files. (Any audio format files supported by FFMPEG.)  
 -o : Output directory. (Output folder path to save separated instruments)  
 -m : Model file. (Pre-trained model)  
--c : Context. (Extension modules : `cpu` or `cudnn`)
+-c : Context. (Extension modules : `cpu` or `cudnn`)  
+-b: Backend framework for inference. (`nnabla` or `openvino`)
+-ovm: Openvino models directory.
 
 ## Training: Train the music source separation model from scratch (**coming soon**)

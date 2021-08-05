@@ -16,20 +16,11 @@ import os
 import argparse
 import yaml
 import numpy as np
-import nnabla as nn
-from nnabla.ext_utils import get_extension_context
 from util import model_separate, save_stft_wav, generate_data
 from filter import apply_mwf
-
+from model_wrapper import SourceSeparationModel
 
 def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_flag=True, ch_flip_average=False):
-    # Set NNabla extention
-    ctx = get_extension_context(args.context)
-    nn.set_default_context(ctx)
-
-    # Load the model weights
-    nn.load_parameters(args.model)
-
     sources = ['vocals', 'bass', 'drums', 'other']
 
     for i, input_file in enumerate(args.inputs):
@@ -38,16 +29,15 @@ def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_f
         print("%d / %d  : %s" % (i + 1, len(args.inputs), input_file))
         out_stfts = {}
         inp_stft_contiguous = np.abs(np.ascontiguousarray(inp_stft))
-
         for source in sources:
             with open('./configs/{}.yaml'.format(source)) as file:
                 # Load source specific Hyper parameters
                 hparams = yaml.load(file, Loader=yaml.FullLoader)
+            d3netwrapper = SourceSeparationModel(args, hparams, source)
+            out_sep = model_separate(
+                inp_stft_contiguous, hparams, d3netwrapper, ch_flip_average=ch_flip_average)
 
-            with nn.parameter_scope(source):
-                out_sep = model_separate(
-                    inp_stft_contiguous, hparams, ch_flip_average=ch_flip_average)
-                out_stfts[source] = out_sep * np.exp(1j * np.angle(inp_stft))
+            out_stfts[source] = out_sep * np.exp(1j * np.angle(inp_stft))
 
         if apply_mwf_flag:
             out_stfts = apply_mwf(out_stfts, inp_stft)
@@ -82,6 +72,10 @@ def get_args(description=''):
                         default='output/', help='output directory')
     parser.add_argument('--context', '-c', type=str,
                         default='cudnn', help="Extension modules('cpu', 'cudnn')")
+    parser.add_argument('--backend', '-b', type=str,
+                        default='nnabla', choices=['nnabla', 'openvino'], help='Backend framework for inference')
+    parser.add_argument('--openvino-model-dir', '-ovm', type=str,
+                        default='./openvino_models', help='Path to openvino model folder')
     return parser.parse_args()
 
 

@@ -102,16 +102,16 @@ def save_timedomain_signal_wav(audio, sample_rate, outfile_name, samplewidth=2):
         sf.write(outfile_name, audio, sample_rate, 'PCM_32')
 
 
-def model_separate(inp_mag, hparams, ch_flip_average=False):
+def model_separate(inp_mag, hparams, d3netwrapper, ch_flip_average=False):
     '''
     Helper function to run separation
     '''
     _out_model = calc_output_overlap_add(
-        inp_mag, hparams, ch_flip_average=ch_flip_average)
+        inp_mag, hparams, ch_flip_average=ch_flip_average, d3netwrapper=d3netwrapper)
     return np.ascontiguousarray(_out_model)
 
 
-def calc_output_overlap_add(inp, hparams, out_ch=None, ch_flip_average=False):
+def calc_output_overlap_add(inp, hparams, out_ch=None, ch_flip_average=False, d3netwrapper=None):
     '''
     Clop both sides of outputs of the network and overlap add by shifting
     Inputs:
@@ -147,11 +147,7 @@ def calc_output_overlap_add(inp, hparams, out_ch=None, ch_flip_average=False):
         inp_ = np.expand_dims(inp_, axis=0)
         if ch_flip_average:
             inp_ = np.concatenate([inp_, inp_[:, :, ::-1, :]], axis=0)
-
-        out_ = d3_net(nn.Variable.from_numpy_array(inp_), hparams, test=True)
-        out_.forward(clear_buffer=True)
-        out_ = out_.data.data
-
+        out_ = d3netwrapper.run(inp_)
         if ch_flip_average:
             out_ = (out_[0] + out_[1, :, ::-1])*0.5
         else:

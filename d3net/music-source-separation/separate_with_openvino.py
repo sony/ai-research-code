@@ -18,7 +18,7 @@ import yaml
 import numpy as np
 from util import model_separate, save_stft_wav, generate_data
 from filter import apply_mwf
-from model import D3NetNNablaWrapper
+from model_wrapper import D3NetOpenVinoWrapper
 
 def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_flag=True, ch_flip_average=False):
     sources = ['vocals', 'bass', 'drums', 'other']
@@ -33,7 +33,7 @@ def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_f
             with open('./configs/{}.yaml'.format(source)) as file:
                 # Load source specific Hyper parameters
                 hparams = yaml.load(file, Loader=yaml.FullLoader)
-            d3netwrapper = D3NetNNablaWrapper(args, hparams, source)
+            d3netwrapper = D3NetOpenVinoWrapper(args, source)
             out_sep = model_separate(
                 inp_stft_contiguous, hparams, d3netwrapper, ch_flip_average=ch_flip_average)
 
@@ -66,12 +66,10 @@ def get_args(description=''):
 
     parser.add_argument('--inputs', '-i', nargs='+', type=str,
                         help='List of input audio files supported by FFMPEG.', required=True)
-    parser.add_argument('--model', '-m', type=str,
-                        default='./d3net-mss.h5', help='Path to model file.')
     parser.add_argument('--out-dir', '-o', type=str,
                         default='output/', help='output directory')
-    parser.add_argument('--context', '-c', type=str,
-                        default='cudnn', help="Extension modules('cpu', 'cudnn')")
+    parser.add_argument('--model_dir', '-m', type=str,
+                        default='./openvino_models', help='Path to openvino model folder')
     return parser.parse_args()
 
 

@@ -28,6 +28,12 @@ Run the below inference command for a sample audio file `test.wav` in current di
 ```python
  python ./separate.py -i ./test.wav -o output/ -m d3net-mss.h5 -c cudnn
  ```
+Arguments:  
+-i : Input files. (Any audio format files supported by FFMPEG.)  
+-o : Output directory. (Output folder path to save separated instruments)  
+-m : Model file. (Pre-trained model)  
+-c : Context. (Extension modules : `cpu` or `cudnn`)  
+
 ### Inference with [OpenVINO](https://docs.openvinotoolkit.org/)
 OpenVINO is a toolkit for quickly deploying a neural network model with high-performance especially on Intel hardware. It speeds up the D3Net inference on CPUs.
 
@@ -36,14 +42,11 @@ Download and extract the openvino weights [here](https://nnabla.org/pretrained-m
  unzip d3net-openvino.zip -d openvino_models
  ```
 ```python
- python ./separate.py -i ./test.wav -o output/ -b openvino -ovm ./openvino_models
+ python ./separate_with_openvino.py -i ./test.wav -o output/ -m ./openvino_models
  ```
 Arguments:  
 -i : Input files. (Any audio format files supported by FFMPEG.)  
 -o : Output directory. (Output folder path to save separated instruments)  
--m : Model file. (Pre-trained model)  
--c : Context. (Extension modules : `cpu` or `cudnn`)  
--b: Backend framework for inference. (`nnabla` or `openvino`)
--ovm: Openvino models directory.
+-m : Openvino models directory.  
 
 ## Training: Train the music source separation model from scratch (**coming soon**)

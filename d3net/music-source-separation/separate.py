@@ -19,8 +19,14 @@ import numpy as np
 from util import model_separate, save_stft_wav, generate_data
 from filter import apply_mwf
 from model import D3NetNNablaWrapper
+import nnabla as nn
+from nnabla.ext_utils import get_extension_context
 
 def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_flag=True, ch_flip_average=False):
+    # Set NNabla extention
+    ctx = get_extension_context(args.context)
+    nn.set_default_context(ctx)
+
     sources = ['vocals', 'bass', 'drums', 'other']
 
     for i, input_file in enumerate(args.inputs):

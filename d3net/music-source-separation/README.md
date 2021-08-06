@@ -35,18 +35,19 @@ Arguments:
 -c : Context. (Extension modules : `cpu` or `cudnn`)  
 
 ### Inference with [OpenVINO](https://docs.openvinotoolkit.org/)
-OpenVINO is a toolkit for quickly deploying a neural network model with high-performance especially on Intel hardware. It speeds up the D3Net inference on CPUs.
+OpenVINO is a toolkit for quickly deploying a neural network model with high-performance especially on Intel hardware. It speeds up the D3Net inference about 5 times on single CPU.
 
 Download and extract the openvino weights [here](https://nnabla.org/pretrained-models/ai-research-code/d3net/mss/d3net-openvino.zip).
 ```bash
  unzip d3net-openvino.zip -d openvino_models
  ```
 ```python
- python ./separate_with_openvino.py -i ./test.wav -o output/ -m ./openvino_models
+ python ./separate_with_openvino.py -i ./test.wav -o output/ -m ./openvino_models -n 4
  ```
 Arguments:  
 -i : Input files. (Any audio format files supported by FFMPEG.)  
 -o : Output directory. (Output folder path to save separated instruments)  
 -m : Openvino models directory.  
+-n : Specifies the number of threads that openvino should use for inference.
 
 ## Training: Train the music source separation model from scratch (**coming soon**)

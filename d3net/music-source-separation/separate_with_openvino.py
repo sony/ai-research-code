@@ -70,6 +70,8 @@ def get_args(description=''):
                         default='output/', help='output directory')
     parser.add_argument('--model_dir', '-m', type=str,
                         default='./openvino_models', help='Path to openvino model folder')
+    parser.add_argument('--cpu_number', '-n', type=str, default='4',
+                        help='The number of threads that openvino should use')
     return parser.parse_args()
 
 

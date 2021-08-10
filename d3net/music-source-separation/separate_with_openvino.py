@@ -18,7 +18,7 @@ import yaml
 import numpy as np
 from util import model_separate, save_stft_wav, generate_data
 from filter import apply_mwf
-from model_wrapper import D3NetOpenVinoWrapper
+from model_openvino import D3NetOpenVinoWrapper
 
 def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_flag=True, ch_flip_average=False):
     sources = ['vocals', 'bass', 'drums', 'other']

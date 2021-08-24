@@ -268,3 +268,36 @@ def d3_net(inp, hp, test=False):
     out = F.concatenate(*[out, inp[:, :, :, valid_signal_idx:]], axis=3)
     out = F.transpose(out, (0, 2, 1, 3))
     return out
+
+
+class D3Net(nn.Module):
+    def __init__(self, hparams):
+        self.hparams = hparams
+
+    def call(self, x):
+        return d3_net(x, self.hparams, test=True)
+
+
+class D3NetNNablaWrapper(object):
+    def __init__(self, args, hparams, source):
+        self.x = None
+        self.out_ = None
+        self.d3net = D3Net(hparams)
+        self.d3net.training = False
+        params = self.load_parameters(args.model)
+        self.d3net.set_parameters(params[source])
+
+    def load_parameters(self, filename):
+        params = {}
+        with nn.parameter_scope('', scope=params):
+            nn.load_parameters(filename)
+        return params
+
+    def run(self, input_var):
+        if not self.x:
+            self.x = nn.Variable(input_var.shape)
+            self.out_ = self.d3net(self.x)
+        self.x.d = input_var
+        self.out_.forward(clear_buffer=True)
+        out_ = self.out_.data.data
+        return out_

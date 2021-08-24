@@ -13,12 +13,10 @@
 # limitations under the License.
 
 import numpy as np
-import nnabla as nn
 import soundfile as sf
 import librosa
 from pydub import AudioSegment
 from pydub.utils import mediainfo
-from model import d3_net
 
 
 def generate_data(file_name, fft_size, hop_size, n_channels):

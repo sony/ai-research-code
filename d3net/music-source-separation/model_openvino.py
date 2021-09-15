@@ -23,7 +23,8 @@ class D3NetOpenVinoWrapper(object):
         self.net = ie.read_network(model=weight)
         self.input_blob = next(iter(self.net.input_info))
         self.out_blob = next(iter(self.net.outputs))
-        self.exec_net = ie.load_network(network=self.net, device_name='CPU', config={'CPU_THREADS_NUM': str(args.cpu_number)})
+        self.exec_net = ie.load_network(network=self.net, device_name='CPU', config={
+                                        'CPU_THREADS_NUM': str(args.cpu_number)})
 
     def run(self, input_var):
         output = self.exec_net.infer(inputs={self.input_blob: input_var})

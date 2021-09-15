@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import nnabla as nn
+'''
+MSE and SDR Combination loss definition for MSS
+'''
+
 import nnabla.functions as F
-import numpy as np
 
 
 def mse(x, y):
@@ -100,14 +102,14 @@ def sdr_loss(mix, pred, gt_time):
 
     # Combination List (4C2 + 4C3)
     combi_list = [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4),
-                (1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]
+                  (1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]
     for combi in combi_list:
         if len(combi) == 2:
             tmp_data = data_t[batch_size*n_channels*combi[0]:batch_size*n_channels*(
                 combi[0]+1), Ellipsis] + data_t[batch_size*n_channels*combi[1]:batch_size*n_channels*(combi[1]+1), Ellipsis]
 
             tmp_pred = pred[batch_size*n_channels*(combi[0]-1):batch_size*n_channels*combi[0], Ellipsis] + \
-                                               pred[batch_size*n_channels*(
+                pred[batch_size*n_channels*(
                                                    combi[1]-1):batch_size*n_channels*combi[1], Ellipsis]
         else:
             tmp_data = data_t[batch_size*n_channels*combi[0]:batch_size*n_channels*(combi[0]+1), Ellipsis] + data_t[batch_size*n_channels*combi[1]:batch_size*n_channels*(
@@ -129,16 +131,16 @@ def sdr_loss(mix, pred, gt_time):
     return 1.0 + loss_sdr
 
 
-def sdr_loss_core(input, gt, mix, weighted=True):
-    assert input.shape == gt.shape # (Batch, Len)
+def sdr_loss_core(inp, gt, mix, weighted=True):
+    assert inp.shape == gt.shape  # (Batch, Len)
     assert mix.shape == gt.shape   # (Batch, Len)
 
-    input = input[:, 200:-200]
+    inp = inp[:, 200:-200]
     gt = gt[:, 200:-200]
     mix = mix[:, 200:-200]
 
     ns = mix - gt
-    ns_hat = mix - input
+    ns_hat = mix - inp
 
     if weighted:
         alpha = F.sum((gt*gt), 1, keepdims=True) / (F.sum((gt*gt), 1,
@@ -147,8 +149,8 @@ def sdr_loss_core(input, gt, mix, weighted=True):
         alpha = 0.5
 
     # Target
-    num_cln = F.sum((input*gt), 1, keepdims=True)
-    denom_cln = ((1e-10 + F.sum((input*input), 1, keepdims=True))
+    num_cln = F.sum((inp*gt), 1, keepdims=True)
+    denom_cln = ((1e-10 + F.sum((inp*inp), 1, keepdims=True))
                  ** 0.5) * ((1e-10 + F.sum((gt*gt), 1, keepdims=True)) ** 0.5)
     sdr_cln = num_cln / (denom_cln + 1e-10)
 

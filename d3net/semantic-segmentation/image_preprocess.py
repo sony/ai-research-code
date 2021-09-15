@@ -80,8 +80,10 @@ def random_scale(image, label, rng=None):
     scale = rng.random_sample() * (max_scale_factor - min_scale_factor) + min_scale_factor
     target_h = int(image.shape[0] * scale)
     target_w = 2 * target_h  # For keeping original aspect ratio of 2
-    scaled_image = cv2.resize(image, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
-    scaled_label = cv2.resize(label, (target_w, target_h), interpolation=cv2.INTER_NEAREST)
+    scaled_image = cv2.resize(
+        image, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
+    scaled_label = cv2.resize(
+        label, (target_w, target_h), interpolation=cv2.INTER_NEAREST)
 
     return scaled_image, scaled_label
 

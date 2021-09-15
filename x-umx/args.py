@@ -12,29 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'''
+ArgumentParser for X-UMX/UMX Inference/Trainer
+'''
+
 import argparse
 
 
 def get_train_args():
     parser = argparse.ArgumentParser(
-        description='OpenUnmix_CrossNet(X-UMX) Trainer')
+        description='OpenUnmix_CrossNet(X-UMX)/OpenUnmix(UMX) Trainer')
 
     # Dataset paramaters
-    parser.add_argument('--root', type=str, help='root path of dataset')
-    parser.add_argument('--output', type=str, default="x-umx",
-                        help='provide output path base folder name')
+    parser.add_argument('--root', type=str,
+                        help='root path of MUSDB18 dataset')
+    parser.add_argument('--output', type=str, required=True,
+                        help='provide output path base folder name for saving the checkpoints')
+
+    # which target do we want to train?
+    parser.add_argument('--source', type=str, default='vocals',
+                        help='target source to be trained for UMX')
     parser.add_argument('--sources', type=str, nargs='+',
                         default=['bass', 'drums', 'vocals', 'other'],
-                        help='List of target sources to be trained')
-
+                        help='List of target sources to be trained for X-UMX')
+    parser.add_argument('--umx-train', action='store_true', default=False,
+                        help='If True, OpenUnmix(UMX) network is used for Training')
 
     # Trainig Parameters
     parser.add_argument('--epochs', type=int, default=1000)
     parser.add_argument('--batch-size', type=int, default=16)
     parser.add_argument('--lr', type=float, default=0.001,
                         help='learning rate, defaults to 1e-3')
-    parser.add_argument('--patience', type=int, default=1000,
-                        help='minimum number of bad epochs for EarlyStoping (default: 1000)')
+    parser.add_argument('--patience', type=int, default=140,
+                        help='minimum number of bad epochs for EarlyStoping (default: 140 for UMX)')
     parser.add_argument('--lr-decay-patience', type=int, default=80,
                         help='lr decay patience for plateau scheduler')
     parser.add_argument('--lr-decay-gamma', type=float, default=0.3,
@@ -60,6 +70,8 @@ def get_train_args():
                         help='maximum model bandwidth in herz')
     parser.add_argument('--nb-channels', type=int, default=2,
                         help='set number of channels for model (1, 2)')
+    parser.add_argument('--sample-rate', type=int, default=44100,
+                        help='model sample rate')
 
     # Misc Parameters
     parser.add_argument('--mcoef', type=float, default=10.0,
@@ -80,18 +92,21 @@ def get_train_args():
 
 def get_inference_args():
     parser = argparse.ArgumentParser(
-        description='OpenUnmix_CrossNet(X-UMX) Inference')
+        description='OpenUnmix_CrossNet(X-UMX)/OpenUnmix(UMX) Inference/Evaluation')
 
     parser.add_argument('--inputs', type=str, nargs='+',
-                        help='List of paths to wav/flac files.')
-    parser.add_argument('--outdir', type=str,
-                        help='Results path where audio evaluation results are stored')
+                        help='List of paths to any audio files supported by FFMPEG.')
+    parser.add_argument('--targets', nargs='+', default=['bass', 'drums', 'vocals', 'other'],
+                        type=str, help='provide targets to be processed. \
+                        If none, all available targets will be computed')
+    parser.add_argument('--out-dir', type=str,
+                        help='Path to save separated sources')
     parser.add_argument('--start', type=float, default=0.0,
                         help='Audio chunk start in seconds')
     parser.add_argument('--duration', type=float, default=-1.0,
                         help='Audio chunk duration in seconds, negative values load full track')
-    parser.add_argument('--model', default='models/x-umx.h5', type=str,
-                        help='path to model base directory of pretrained models')
+    parser.add_argument('--model', type=str, required=True,
+                        help='path to pretrained weights (weight filename in case of X-UMX Inference or directory of weight files for UMX Inference')
     parser.add_argument('--context', default='cudnn', type=str,
                         help='Execution on CUDA')
     parser.add_argument('--softmask', dest='softmask', action='store_true',
@@ -105,9 +120,17 @@ def get_inference_args():
                         help='model sample rate')
     parser.add_argument('--residual-model', action='store_true',
                         help='create a model for the residual')
-    parser.add_argument('--chunk-dur', type=int, default=30,
-                        help='window length in seconds - reduce this if inference fails with SegFault')
+    parser.add_argument('--chunk-dur', type=int, default=None,
+                        help='window length in seconds - reduce this if Inference fails with SegFault')
+    parser.add_argument('--umx-infer', action='store_true', default=False,
+                        help='If True, OpenUnmix(UMX) network is used for Inference/Evaluation')
 
+    # Only Evaluation specific arguments
+    parser.add_argument('--root', type=str,
+                        help='root path of MUSDB18 dataset')
+    parser.add_argument('--cores', type=int, default=1)
+    parser.add_argument('--is-wav', action='store_true',
+                        default=False, help='flags wav version of the dataset')
     args, _ = parser.parse_known_args()
 
     return args

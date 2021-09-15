@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Sony Corporation. All Rights Reserved.
+# Copyright 2021 Sony Group Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class Compose():
         return audio
 
 
-def _augment_gain(audio, low=0.25, high=1.25):
+def _augment_gain(audio, low=0.75, high=1.25):
     """Applies a random gain between `low` and `high`"""
     g = random.uniform(low, high)
     return audio * g
@@ -57,7 +57,7 @@ def load_datasources(parser, args):
         train_dataset, validation_dataset
     """
 
-    parser.add_argument('--is-wav', action='store_true', default=False,
+    parser.add_argument('--is-wav', action='store_true', default=True,
                         help='loads wav instead of STEMS')
     parser.add_argument('--samples-per-track', type=int, default=64)
     parser.add_argument(
@@ -73,23 +73,15 @@ def load_datasources(parser, args):
 
     train_dataset = MUSDBDataSource(
         source_augmentations=source_augmentations, random_track_mix=True, args=args)
-    valid_dataset = MUSDBDataSource(
-        split='valid', samples_per_track=1, args=args)
 
-    return train_dataset, valid_dataset, args
+    return train_dataset, args
 
 
 class MUSDBDataSource(DataSource):
-    """
-    DataSource for MUSDB18 
-    """
-
     def __init__(
         self,
         args,
         download=False,
-        subsets='train',
-        split='train',
         samples_per_track=64,
         source_augmentations=lambda audio: audio,
         random_track_mix=False,
@@ -107,11 +99,6 @@ class MUSDBDataSource(DataSource):
             the musdb dataset initialization function.
         download : boolean
             automatically download 7s preview version of MUS
-        subsets : list-like [str]
-            subset str or list of subset. Defaults to ``train``.
-        split : str
-            use (stratified) track splits for validation split (``valid``),
-            defaults to ``train``.
         samples_per_track : int
             sets the number of samples, yielded from each track per epoch.
             Defaults to 64
@@ -127,7 +114,8 @@ class MUSDBDataSource(DataSource):
         dtype : numeric type
             data type of torch output tuple x and y
         """
-        super(MUSDBDataSource, self).__init__(shuffle=(split == 'train'))
+
+        super(MUSDBDataSource, self).__init__(shuffle=True)
         if rng is None:
             rng = np.random.RandomState(seed)
         self.rng = rng
@@ -135,23 +123,22 @@ class MUSDBDataSource(DataSource):
         random.seed(seed)
         self.args = args
         self.download = args.root is None
-        self.subsets = subsets
-        self.split = split
         self.samples_per_track = samples_per_track
         self.source_augmentations = source_augmentations
         self.random_track_mix = random_track_mix
         self.mus = musdb.DB(
             root=args.root,
             is_wav=args.is_wav,
-            split=split,
-            subsets=subsets,
+            split=None,
+            subsets='train',
             download=download
         )
 
         print(f"Finished loading dataset with {len(self.mus.tracks)} tracks.")
 
-        self.sample_rate = 44100  # musdb is fixed sample rate
+        self.sample_rate = 44100  # musdb has fixed sample rate
         self.dtype = dtype
+
         self._size = len(self.mus.tracks) * self.samples_per_track
         self._variables = ('mixture', 'target')
         self.reset()
@@ -159,13 +146,19 @@ class MUSDBDataSource(DataSource):
     def _get_data(self, position):
         index = self._indexes[position]
         audio_sources = []
+        target_ind = None
 
         # select track
         track = self.mus.tracks[index // self.samples_per_track]
 
         # at training time we assemble a custom mix
-        if self.split == 'train' and self.args.seq_dur:
-            for source in self.args.sources:
+        if self.args.seq_dur:
+            for k, source in enumerate(self.mus.setup['sources']):
+
+                # memorize index of target source
+                if source == self.args.target:
+                    target_ind = k
+
                 # select a random track
                 if self.random_track_mix:
                     track = random.choice(self.mus.tracks)
@@ -175,7 +168,8 @@ class MUSDBDataSource(DataSource):
 
                 # set random start index
                 track.chunk_start = random.uniform(
-                    0, track.duration - self.args.seq_dur)
+                    0, track.duration - self.args.seq_dur
+                )
 
                 # load source audio and apply time domain source_augmentations
                 audio = track.sources[source].audio.T
@@ -184,31 +178,23 @@ class MUSDBDataSource(DataSource):
 
             # create stem tensor of shape (source, channel, samples)
             stems = np.stack(audio_sources, axis=0)
-            # apply linear mix over source index=0
+            # # apply linear mix over source index=0
             x = np.sum(stems, axis=0)
-            if self.args.umx_train:
-                # get the target stem for UMX training
-                target_index = self.args.sources.index(self.args.source)
-                y = stems[target_index]
+
+            # get the target stem
+            if target_ind is not None:
+                y = stems[target_ind]
+            # assuming vocal/accompaniment scenario if target!=source
             else:
-                # get the target stems for X-UMX training
-                y = stems[0]
-                for idx in range(1, 4):
-                    y = np.concatenate((y, stems[idx]), axis=0)
+                vocind = list(self.mus.setup['sources'].keys()).index('vocals')
+                # apply time domain subtraction
+                y = x - stems[vocind]
 
         # for validation and test, we deterministically yield the full musdb track
         else:
             # get the non-linear source mix straight from musdb
             x = track.audio.T
-            if self.args.umx_train:
-                # get the target stem for UMX validation
-                y = track.targets[self.args.source].audio.T
-            else:
-                # get the target stems for X-UMX validation
-                y = track.targets[self.args.sources[0]].audio.T
-                for idx in range(1, 4):
-                    tmp = track.targets[self.args.sources[idx]].audio.T
-                    y = np.concatenate((y, tmp), axis=0)
+            y = track.targets[self.args.target].audio.T
         return x, y
 
     def reset(self):

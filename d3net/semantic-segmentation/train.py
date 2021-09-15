@@ -24,7 +24,8 @@ import nnabla as nn
 import nnabla.functions as F
 import nnabla.solvers as S
 import nnabla.monitor as M
-from comm import init_nnabla
+from nnabla.ext_utils import get_extension_context
+from comm import CommunicatorWrapper
 from segmentation_data import data_iterator_cityscapes
 from model import d3net_segmentation
 from lr_scheduler import PolynomialScheduler
@@ -62,8 +63,10 @@ def train():
     with open(args.config_file) as file:
         hparams = yaml.load(file, Loader=yaml.FullLoader)
 
-    # Set NNabla extention
-    comm = init_nnabla(ext_name='cudnn', device_id=0, type_config='float')
+    # Get context.
+    ctx = get_extension_context(args.context, device_id=0)
+    comm = CommunicatorWrapper(ctx)
+    nn.set_default_context(comm.ctx)
 
     # Change max_iter, learning_rate and weight_decay according no. of gpu devices for multi-gpu training.
     default_batch_size = 8

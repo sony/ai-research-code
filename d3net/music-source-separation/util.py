@@ -12,11 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'''
+Utility code
+'''
+
 import numpy as np
+import nnabla as nn
 import soundfile as sf
 import librosa
 from pydub import AudioSegment
 from pydub.utils import mediainfo
+import sklearn
+import tqdm
+from model import D3NetMSS, stft, spectogram
+
+
+def get_statistics(args, datasource):
+    scaler = sklearn.preprocessing.StandardScaler()
+    pbar = tqdm.tqdm(range(len(datasource.mus.tracks)))
+
+    for ind in pbar:
+        x = datasource.mus.tracks[ind].audio.T
+        audio = nn.NdArray.from_numpy_array(x[None, ...])
+        target_spec = spectogram(
+            *stft(audio, n_fft=args.nfft, n_hop=args.nhop),
+            mono=True
+        )
+        pbar.set_description("Compute dataset statistics")
+        scaler.partial_fit(np.squeeze(target_spec.data))
+
+    # set inital input scaler values
+    std = np.maximum(
+        scaler.scale_,
+        1e-4*np.max(scaler.scale_)
+    )
+    return scaler.mean_, std
 
 
 def generate_data(file_name, fft_size, hop_size, n_channels):
@@ -35,7 +65,8 @@ def generate_data(file_name, fft_size, hop_size, n_channels):
     audio_with_meta = AudioSegment.from_file(file_name)
     sample_rate = int(mediainfo(file_name)['sample_rate'])
     channel_sounds = audio_with_meta.split_to_mono()
-    samples = [s.get_array_of_samples() for idx, s in enumerate(channel_sounds) if idx < 2]
+    samples = [s.get_array_of_samples()
+               for idx, s in enumerate(channel_sounds) if idx < 2]
     fp_arr = np.array(samples).T.astype(np.float32)
     audio = fp_arr / np.iinfo(samples[0].typecode).max
 
@@ -100,16 +131,16 @@ def save_timedomain_signal_wav(audio, sample_rate, outfile_name, samplewidth=2):
         sf.write(outfile_name, audio, sample_rate, 'PCM_32')
 
 
-def model_separate(inp_mag, hparams, d3netwrapper, ch_flip_average=False):
+def model_separate(inp_mag, hparams, ch_flip_average=False, openvino_wrapper=None):
     '''
     Helper function to run separation
     '''
     _out_model = calc_output_overlap_add(
-        inp_mag, hparams, ch_flip_average=ch_flip_average, d3netwrapper=d3netwrapper)
+        inp_mag, hparams, ch_flip_average=ch_flip_average, openvino_wrapper=openvino_wrapper)
     return np.ascontiguousarray(_out_model)
 
 
-def calc_output_overlap_add(inp, hparams, out_ch=None, ch_flip_average=False, d3netwrapper=None):
+def calc_output_overlap_add(inp, hparams, out_ch=None, ch_flip_average=False, openvino_wrapper=None):
     '''
     Clop both sides of outputs of the network and overlap add by shifting
     Inputs:
@@ -145,14 +176,40 @@ def calc_output_overlap_add(inp, hparams, out_ch=None, ch_flip_average=False, d3
         inp_ = np.expand_dims(inp_, axis=0)
         if ch_flip_average:
             inp_ = np.concatenate([inp_, inp_[:, :, ::-1, :]], axis=0)
-        out_ = d3netwrapper.run(inp_)
-        if ch_flip_average:
-            out_ = (out_[0] + out_[1, :, ::-1])*0.5
+
+        if openvino_wrapper is not None:
+            out = openvino_wrapper.run(inp_)
         else:
-            out_ = out_[0]
+            out = D3NetMSS(hparams, test=True)(
+                nn.Variable.from_numpy_array(inp_))
+            out.forward(clear_buffer=True)
+            out = out.data.data
+
+        if ch_flip_average:
+            out = (out[0] + out[1, :, ::-1])*0.5
+        else:
+            out = out[0]
         output[patch_id * shift: (patch_id + scale)
-               * shift, :, :] += out_[:shift * scale, :, :]
+               * shift, :, :] += out[:shift * scale, :, :]
 
     output = output[shift * (scale - 1):shift *
                     (scale - 1) + inp.shape[0]] / scale
     return output
+
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.sum += val * n
+        self.count += n
+
+    def get_avg(self):
+        return self.sum / self.count

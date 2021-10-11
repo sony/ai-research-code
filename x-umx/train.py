@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'''
+MSS Training code using X-UMX/UMX.
+'''
+
 import os
 import nnabla as nn
 import nnabla.solvers as S
@@ -20,11 +24,10 @@ from nnabla.utils.data_iterator import data_iterator
 from nnabla.monitor import Monitor, MonitorSeries, MonitorTimeElapsed
 from numpy.random import RandomState, seed
 from tqdm import trange
-from loss import mse_loss, sdr_loss
 from lr_scheduler import ReduceLROnPlateau
 from comm import CommunicatorWrapper
 from args import get_train_args
-from model import OpenUnmix_CrossNet, STFT, Spectrogram
+from model import get_model
 from data import load_datasources
 import utils
 seed(42)
@@ -61,11 +64,10 @@ def train():
         "training time per iteration", monitor, interval=1)
 
     if comm.rank == 0:
-        print("Mixing coef. is {}, i.e., MDL = {}*TD-Loss + FD-Loss".format(args.mcoef, args.mcoef))
         if not os.path.isdir(args.output):
             os.makedirs(args.output)
 
-    # Initialize DataIterator for MUSDB.
+    # Initialize DataIterator for MUSDB18.
     train_source, valid_source, args = load_datasources(parser, args)
 
     train_iter = data_iterator(
@@ -73,7 +75,6 @@ def train():
         args.batch_size,
         RandomState(args.seed),
         with_memory_cache=False,
-        with_file_cache=False
     )
 
     valid_iter = data_iterator(
@@ -81,7 +82,6 @@ def train():
         1,
         RandomState(args.seed),
         with_memory_cache=False,
-        with_file_cache=False
     )
 
     if comm.n_procs > 1:
@@ -92,62 +92,29 @@ def train():
             rng=None, num_of_slices=comm.n_procs, slice_pos=comm.rank)
 
     # Calculate maxiter per GPU device.
+    # Change max_iter, learning_rate and weight_decay according no. of gpu devices for multi-gpu training.
+    default_batch_size = 16
+    train_scale_factor = (comm.n_procs * args.batch_size) / default_batch_size
     max_iter = int((train_source._size // args.batch_size) // comm.n_procs)
-    weight_decay = args.weight_decay * comm.n_procs
-
-    print("max_iter", max_iter)
+    weight_decay = args.weight_decay * train_scale_factor
+    args.lr = args.lr * train_scale_factor
 
     # Calculate the statistics (mean and variance) of the dataset
     scaler_mean, scaler_std = utils.get_statistics(args, train_source)
+
+    # clear cache memory
+    ext.clear_memory_cache()
 
     max_bin = utils.bandwidth_to_max_bin(
         train_source.sample_rate, args.nfft, args.bandwidth
     )
 
-    unmix = OpenUnmix_CrossNet(
-        input_mean=scaler_mean,
-        input_scale=scaler_std,
-        nb_channels=args.nb_channels,
-        hidden_size=args.hidden_size,
-        n_fft=args.nfft,
-        n_hop=args.nhop,
-        max_bin=max_bin
-    )
-
-    # Create input variables.
-    mixture_audio = nn.Variable(
-        [args.batch_size] + list(train_source._get_data(0)[0].shape))
-    target_audio = nn.Variable(
-        [args.batch_size] + list(train_source._get_data(0)[1].shape))
-
-    vmixture_audio = nn.Variable([1] + [2, valid_source.sample_rate * args.valid_dur])
-    vtarget_audio = nn.Variable([1] + [8, valid_source.sample_rate * args.valid_dur])
-
-    # create training graph
-    mix_spec, M_hat, pred = unmix(mixture_audio)
-    Y = Spectrogram(
-        *STFT(target_audio, n_fft=unmix.n_fft, n_hop=unmix.n_hop),
-        mono=(unmix.nb_channels == 1)
-    )
-    loss_f = mse_loss(mix_spec, M_hat, Y)
-    loss_t = sdr_loss(mixture_audio, pred, target_audio)
-    loss = args.mcoef * loss_t + loss_f
-    loss.persistent = True
+    # Get X-UMX/UMX computation graph and variables as namedtuple
+    model = get_model(args, scaler_mean, scaler_std, max_bin=max_bin)
 
     # Create Solver and set parameters.
     solver = S.Adam(args.lr)
     solver.set_parameters(nn.get_parameters())
-
-    # create validation graph
-    vmix_spec, vM_hat, vpred = unmix(vmixture_audio, test=True)
-    vY = Spectrogram(
-        *STFT(vtarget_audio, n_fft=unmix.n_fft, n_hop=unmix.n_hop),
-        mono=(unmix.nb_channels == 1)
-    )
-    vloss_f = mse_loss(vmix_spec, vM_hat, vY)
-    vloss_t = sdr_loss(vmixture_audio, vpred, vtarget_audio)
-    vloss = args.mcoef * vloss_t + vloss_f
-    vloss.persistent = True
 
     # Initialize Early Stopping
     es = utils.EarlyStopping(patience=args.patience)
@@ -157,30 +124,33 @@ def train():
         lr=args.lr, factor=args.lr_decay_gamma, patience=args.lr_decay_patience)
     best_epoch = 0
 
+    # AverageMeter for mean loss calculation over the epoch
+    losses = utils.AverageMeter()
+
     # Training loop.
     for epoch in trange(args.epochs):
         # TRAINING
-        losses = utils.AverageMeter()
+        losses.reset()
         for batch in range(max_iter):
-            mixture_audio.d, target_audio.d = train_iter.next()
+            model.mixture_audio.d, model.target_audio.d = train_iter.next()
             solver.zero_grad()
-            loss.forward(clear_no_need_grad=True)
+            model.loss.forward(clear_no_need_grad=True)
             if comm.n_procs > 1:
                 all_reduce_callback = comm.get_all_reduce_callback()
-                loss.backward(clear_buffer=True,
-                              communicator_callbacks=all_reduce_callback)
+                model.loss.backward(clear_buffer=True,
+                                    communicator_callbacks=all_reduce_callback)
             else:
-                loss.backward(clear_buffer=True)
+                model.loss.backward(clear_buffer=True)
             solver.weight_decay(weight_decay)
             solver.update()
-            losses.update(loss.d.copy(), args.batch_size)
-        training_loss = losses.avg
+            losses.update(model.loss.d.copy(), args.batch_size)
+        training_loss = losses.get_avg()
 
         # clear cache memory
         ext.clear_memory_cache()
 
         # VALIDATION
-        vlosses = utils.AverageMeter()
+        losses.reset()
         for batch in range(int(valid_source._size // comm.n_procs)):
             x, y = valid_iter.next()
             dur = int(valid_source.sample_rate * args.valid_dur)
@@ -188,19 +158,19 @@ def train():
             loss_tmp = nn.NdArray()
             loss_tmp.zero()
             while 1:
-                vmixture_audio.d = x[Ellipsis, sp:sp+dur]
-                vtarget_audio.d = y[Ellipsis, sp:sp+dur]
-                vloss.forward(clear_no_need_grad=True)
+                model.vmixture_audio.d = x[Ellipsis, sp:sp+dur]
+                model.vtarget_audio.d = y[Ellipsis, sp:sp+dur]
+                model.vloss.forward(clear_no_need_grad=True)
                 cnt += 1
                 sp += dur
-                loss_tmp += vloss.data
+                loss_tmp += model.vloss.data
                 if x[Ellipsis, sp:sp+dur].shape[-1] < dur or x.shape[-1] == cnt*dur:
                     break
             loss_tmp = loss_tmp / cnt
             if comm.n_procs > 1:
                 comm.all_reduce(loss_tmp, division=True, inplace=True)
-            vlosses.update(loss_tmp.data.copy(), 1)
-        validation_loss = vlosses.avg
+            losses.update(loss_tmp.data.copy(), 1)
+        validation_loss = losses.get_avg()
 
         # clear cache memory
         ext.clear_memory_cache()
@@ -217,14 +187,20 @@ def train():
             monitor_time.add(epoch)
 
             if validation_loss == es.best:
-                # save best model
-                nn.save_parameters(os.path.join(
-                    args.output, 'best_xumx.h5'))
                 best_epoch = epoch
+                # save best model
+                if args.umx_train:
+                    nn.save_parameters(os.path.join(
+                        args.output, 'best_umx.h5'))
+                else:
+                    nn.save_parameters(os.path.join(
+                        args.output, 'best_xumx.h5'))
 
-        if stop:
-            print("Apply Early Stopping")
-            break
+        if args.umx_train:
+            # Early stopping for UMX after `args.patience` (140) number of epochs
+            if stop:
+                print("Apply Early Stopping")
+                break
 
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ from util import model_separate, save_stft_wav, generate_data
 from filter import apply_mwf
 from model_openvino import D3NetOpenVinoWrapper
 
+
 def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_flag=True, ch_flip_average=False):
     sources = ['vocals', 'bass', 'drums', 'other']
 
@@ -35,7 +36,7 @@ def run_separation(args, fft_size=4096, hop_size=1024, n_channels=2, apply_mwf_f
                 hparams = yaml.load(file, Loader=yaml.FullLoader)
             d3netwrapper = D3NetOpenVinoWrapper(args, source)
             out_sep = model_separate(
-                inp_stft_contiguous, hparams, d3netwrapper, ch_flip_average=ch_flip_average)
+                inp_stft_contiguous, hparams, ch_flip_average=ch_flip_average, openvino_wrapper=d3netwrapper)
 
             out_stfts[source] = out_sep * np.exp(1j * np.angle(inp_stft))
 
@@ -68,9 +69,9 @@ def get_args(description=''):
                         help='List of input audio files supported by FFMPEG.', required=True)
     parser.add_argument('--out-dir', '-o', type=str,
                         default='output/', help='output directory')
-    parser.add_argument('--model_dir', '-m', type=str,
+    parser.add_argument('--model-dir', '-m', type=str,
                         default='./openvino_models', help='Path to openvino model folder')
-    parser.add_argument('--cpu_number', '-n', type=str, default='4',
+    parser.add_argument('--cpu-number', '-n', type=str, default='4',
                         help='The number of threads that openvino should use')
     return parser.parse_args()
 

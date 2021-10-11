@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'''
+Utility code
+'''
+
+import re
 import numpy as np
 import sklearn.preprocessing
 import tqdm
 import nnabla as nn
-from model import STFT, Spectrogram
+from model import get_stft, get_spectogram
 
 
 def get_nnabla_version_integer():
-    from nnabla import __version__
-    import re
-    r = list(map(int, re.match('^(\d+)\.(\d+)\.(\d+)', __version__).groups()))
+    r = list(map(int, re.match('^(\d+)\.(\d+)\.(\d+)', nn.__version__).groups()))
     return r[0] * 10000 + r[1] * 100 + r[2]
 
 
@@ -33,8 +36,8 @@ def get_statistics(args, datasource):
     for ind in pbar:
         x = datasource.mus.tracks[ind].audio.T
         audio = nn.NdArray.from_numpy_array(x[None, ...])
-        target_spec = Spectrogram(
-            *STFT(audio, n_fft=args.nfft, n_hop=args.nhop),
+        target_spec = get_spectogram(
+            *get_stft(audio, n_fft=args.nfft, n_hop=args.nhop),
             mono=True
         )
         pbar.set_description("Compute dataset statistics")
@@ -57,26 +60,25 @@ def bandwidth_to_max_bin(sample_rate, n_fft, bandwidth):
     return np.max(np.where(freqs <= bandwidth)[0]) + 1
 
 
-class AverageMeter(object):
+class AverageMeter():
     """Computes and stores the average and current value"""
 
     def __init__(self):
         self.reset()
 
     def reset(self):
-        self.val = 0
-        self.avg = 0
         self.sum = 0
         self.count = 0
 
     def update(self, val, n=1):
-        self.val = val
         self.sum += val * n
         self.count += n
-        self.avg = self.sum / self.count
+
+    def get_avg(self):
+        return self.sum / self.count
 
 
-class EarlyStopping(object):
+class EarlyStopping():
     def __init__(self, mode='min', min_delta=0, patience=10):
         self.mode = mode
         self.min_delta = min_delta

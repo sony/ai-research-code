@@ -12,13 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import nnabla as nn
+'''
+NNabla Utility Code for Communicators
+'''
 
+import nnabla as nn
 from nnabla.logger import logger
+from nnabla.ext_utils import get_extension_context
+import nnabla.communicators as C
+import logging
 
 
 def create_float_context(ctx):
-    from nnabla.ext_utils import get_extension_context
     ctx_float = get_extension_context(ctx.backend[0].split(':')[
                                       0], device_id=ctx.device_id)
     return ctx_float
@@ -27,7 +32,6 @@ def create_float_context(ctx):
 class CommunicatorWrapper(object):
     def __init__(self, ctx):
         try:
-            import nnabla.communicators as C
             comm = C.MultiProcessDataParallelCommunicator(ctx)
             comm.init()
             self.n_procs = comm.size

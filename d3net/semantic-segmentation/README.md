@@ -12,7 +12,7 @@ From the Colab link below, you can try running D3Net (D3Net-L/D3Net-S) to genera
 ## Getting started
 
 ### Prerequisites
-* nnabla 
+* nnabla >= 1.21.0
 * cv2
 * numpy
 * PyYAML >= 5.3

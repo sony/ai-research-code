@@ -88,9 +88,10 @@ def data_iterator_segmentation(batch_size, image_paths, label_paths, rng=None, t
         '''
         img = cv2.imread(image_paths[i], cv2.IMREAD_COLOR)
         lab = palette_png_reader(label_paths[i])
-        img, lab, mask = image_preprocess.preprocess_image_and_label(
+        img, lab = image_preprocess.preprocess_image_and_label(
             img, lab, rng=rng)
-        return img, lab, mask
+        return img, lab
+
     return data_iterator_simple(image_label_load_func, num_examples, batch_size, shuffle=train, rng=rng)
 
 

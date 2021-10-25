@@ -17,6 +17,7 @@ D3Net Semantic Segmentation Training Code
 '''
 
 import os
+import re
 import argparse
 import yaml
 import numpy as np
@@ -54,10 +55,20 @@ def get_args(description='D3Net Semantic Segmentation Training'):
     return parser.parse_args()
 
 
+def get_nnabla_version_integer():
+    r = list(map(int, re.match('^(\d+)\.(\d+)\.(\d+)', nn.__version__).groups()))
+    return r[0] * 10000 + r[1] * 100 + r[2]
+
+
 def train():
     '''
     Run D3Net Semantic Segmentation Training
     '''
+    # Check NNabla version
+    if get_nnabla_version_integer() < 12100:
+        raise ValueError(
+            'This code does not work with nnabla version less than v1.21.0 since [ignore index less than 0](https://github.com/sony/nnabla/pull/945) is added in v1.21.0 . Please update the nnabla version.')
+
     args = get_args()
     # Load D3Net Hyper parameters (D3Net-L or D3Net-S)
     with open(args.config_file) as file:
@@ -109,14 +120,12 @@ def train():
         (hparams['batch_size'], 3, hparams['image_height'], hparams['image_width']))
     seg_gt = nn.Variable(
         (hparams['batch_size'], 1, hparams['image_height'], hparams['image_width']))
-    mask = nn.Variable(
-        (hparams['batch_size'], 1, hparams['image_height'], hparams['image_width']))
 
     # D3Net prediction/output
     seg_pred = d3net_segmentation(image, hparams, recompute=args.recompute)
 
     # Configure loss
-    loss = F.mean(F.softmax_cross_entropy(seg_pred, seg_gt, axis=1) * mask)
+    loss = F.mean(F.softmax_cross_entropy(seg_pred, seg_gt, axis=1))
     loss.persistent = True
 
     # Create Solver
@@ -135,7 +144,7 @@ def train():
     # Training loop
     # -------------
     for i in range(hparams['max_iter']):
-        image.d, seg_gt.d, mask.d = data.next()
+        image.d, seg_gt.d = data.next()
         solver.zero_grad()
         lr = lr_scheduler.get_learning_rate(i)
         solver.set_learning_rate(lr)

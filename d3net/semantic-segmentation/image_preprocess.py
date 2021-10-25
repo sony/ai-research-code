@@ -199,15 +199,13 @@ def photometric_distortion(image, brightness_delta=32,
     return image
 
 
-def create_mask(label):
+def ignore_border_pixel(label):
     '''
-    Create masks of 1, 0 for ignore labels (255)
+    Ignore border pixels of labels (255) by replacing with -1. [More details](https://github.com/sony/nnabla/pull/945)
     '''
-    mask = (label != 255)
-    mask = mask.astype(np.int32)
-    label[label == 255] = 0
-    label = label.astype(np.int32)
-    return label, mask
+    label = label.astype(np.int16)
+    label[label == 255] = -1
+    return label
 
 
 def preprocess_image_and_label(image, label, rng=None, desired_size=(512, 1024)):
@@ -228,6 +226,6 @@ def preprocess_image_and_label(image, label, rng=None, desired_size=(512, 1024))
         image = np.expand_dims(image, -1)
     image = np.ascontiguousarray(image.transpose(2, 0, 1))
     label = np.expand_dims(label, axis=0)
-    label, mask = create_mask(label)
+    label = ignore_border_pixel(label)
 
-    return image, label, mask
+    return image, label

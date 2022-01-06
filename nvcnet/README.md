@@ -36,7 +36,7 @@ python preprocess.py -i <path to `VCTK-Corpus/wav48/`> \
        --make-test
 ```
 - List of speakers used for training the model can be found [here](data/list_of_speakers.txt).
-- List of speakers used for the traditional subjective evaluation can be found [here](data/list_of_sub.txt).
+- List of speakers used for the traditional subjective evaluation can be found [here](data/list_of_subs.txt).
 - List of speakers used for the zero-shot evaluation can be found [here](data/list_of_unseen_speakers.txt).
 - Gender information about speakers can be found [here](data/speaker-info.txt).
 

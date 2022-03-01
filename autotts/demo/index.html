@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AutoTTS Audio Samples</title>
+    <style>
+        body {
+            margin: 0% 15%;
+            padding: 50px 30px;
+            background: #fff;
+            color: #111;
+            font-size: 17px;
+            font-family: sans-serif;
+            font-weight: 400;
+            line-height: 1.8;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1 {
+            font-size: 1.75em;
+        }
+
+        h2 {
+            margin-bottom: 0.4em;
+        }
+
+        hr {
+            height: 0.5px;
+            border-width: 0;
+            color: lightgray;
+            background-color: lightgray
+        }
+
+        table {
+            width: 100%;
+        }
+
+        audio {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1> Differentiable Duration Modeling for End-to-End Text-to-Speech </h1>
+    <p>
+        <hr>
+    <div style="text-align: justify"><b>Abstract</b>: <em>Parallel text-to-speech (TTS) models have recently enabled
+            fast and highly-natural speech
+            synthesis.
+            However, such models typically require external alignment models, which are not necessarily optimized for
+            the decoder as they are not jointly trained. In this paper, we propose a differentiable duration method for
+            learning monotonic alignments between input and output sequences. Our method is based on a soft-duration
+            mechanism that optimizes a stochastic process in
+            expectation. Using this differentiable duration method, a direct text to waveform TTS model is introduced to
+            produce raw
+            audio as output instead of performing neural vocoding. Our model learns to perform high-fidelity speech
+            synthesis
+            through a combination of adversarial training and matching the total ground-truth duration. Experimental
+            results show
+            that our model obtains competitive results while enjoying a much simpler training pipeline.
+        </em></div>
+    <div>
+        <b>Paper</b>: <a href="https://arxiv.org/"> AutoTTS</a>
+    </div>
+    <div>
+        <b>Code</b>: Comming soon</a>
+    </div>
+    <div>
+        <center>
+            <img align="center" src="resources/figs/autotts.png" style="width:500px;" />
+        </center>
+    </div>
+    <hr>
+    <h2>Audio Samples</h2>
+    Audio samples are taken from the LJ Speech data set [1].
+    <hr>
+    <div><b>Text</b>: <em>In the preceding chapter I have been tempted by the importance of the general question to give
+            it prominence and precedence over the particular branch of which I am treating.</em></div>
+    <table style='width: 100%;'>
+        <tr>
+            <th style="text-align: center">Ground Truth</th>
+            <th style="text-align: center">HiFi-GAN+Mel</th>
+            <th style="text-align: center">Tacotron 2</th>
+            <th style="text-align: center">FastSpeech 2</th>
+            <th style="text-align: center">AutoTTS</th>
+        </tr>
+        <tr>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/ground-truth/LJ006-0002.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/hifi-gan/LJ006-0002.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/tacotron2/LJ006-0002.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/fastspeech2/LJ006-0002.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/autotts/LJ006-0002.wav" type="audio/wav" />
+                </audio></td>
+        </tr>
+    </table>
+
+
+    <hr>
+    <div><b>Text</b>: <em>but in a separate chamber, that belonging to one of the warders of the jail.</em></div>
+    <table style='width: 100%;'>
+        <tr>
+            <th style="text-align: center">Ground Truth</th>
+            <th style="text-align: center">HiFi-GAN+Mel</th>
+            <th style="text-align: center">Tacotron 2</th>
+            <th style="text-align: center">FastSpeech 2</th>
+            <th style="text-align: center">AutoTTS</th>
+        </tr>
+        <tr>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/ground-truth/LJ011-0039.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/hifi-gan/LJ011-0039.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/tacotron2/LJ011-0039.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/fastspeech2/LJ011-0039.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/autotts/LJ011-0039.wav" type="audio/wav" />
+                </audio></td>
+        </tr>
+    </table>
+
+
+    <hr>
+    <div><b>Text</b>: <em>the same callous indifference to the moral well-being of the prisoners, the same want of
+            employment and of all
+            disciplinary control.</em></div>
+    <table style='width: 100%;'>
+        <tr>
+            <th style="text-align: center">Ground Truth</th>
+            <th style="text-align: center">HiFi-GAN+Mel</th>
+            <th style="text-align: center">Tacotron 2</th>
+            <th style="text-align: center">FastSpeech 2</th>
+            <th style="text-align: center">AutoTTS</th>
+        </tr>
+        <tr>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/ground-truth/LJ006-0044.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/hifi-gan/LJ006-0044.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/tacotron2/LJ006-0044.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/fastspeech2/LJ006-0044.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/autotts/LJ006-0044.wav" type="audio/wav" />
+                </audio></td>
+        </tr>
+    </table>
+
+
+    <hr>
+    <div><b>Text</b>: <em>radical improvement was generally considered impossible. The great evil, however, had been
+            sensibly diminished.</em></div>
+    <table style='width: 100%;'>
+        <tr>
+            <th style="text-align: center">Ground Truth</th>
+            <th style="text-align: center">HiFi-GAN+Mel</th>
+            <th style="text-align: center">Tacotron 2</th>
+            <th style="text-align: center">FastSpeech 2</th>
+            <th style="text-align: center">AutoTTS</th>
+        </tr>
+        <tr>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/ground-truth/LJ019-0134.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/hifi-gan/LJ019-0134.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/tacotron2/LJ019-0134.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/fastspeech2/LJ019-0134.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/autotts/LJ019-0134.wav" type="audio/wav" />
+                </audio></td>
+        </tr>
+    </table>
+
+
+    <hr>
+    <div><b>Text</b>: <em>The referral of the copy to local Secret Service should not delay the immediate referral of
+            the information by the
+            fastest available means of communication</em></div>
+    <table style='width: 100%;'>
+        <tr>
+            <th style="text-align: center">Ground Truth</th>
+            <th style="text-align: center">HiFi-GAN+Mel</th>
+            <th style="text-align: center">Tacotron 2</th>
+            <th style="text-align: center">FastSpeech 2</th>
+            <th style="text-align: center">AutoTTS</th>
+        </tr>
+        <tr>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/ground-truth/LJ046-0222.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/hifi-gan/LJ046-0222.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/tacotron2/LJ046-0222.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/fastspeech2/LJ046-0222.wav" type="audio/wav" />
+                </audio></td>
+            <td style="text-align: center"><audio controls="">
+                    <source src="./resources/audio/autotts/LJ046-0222.wav" type="audio/wav" />
+                </audio></td>
+        </tr>
+    </table>
+
+
+    <hr>
+    <h2>References</h2>
+    [1] K. Ito and L. Johnson, “The LJ Speech dataset,” <a
+        href="https://keithito.com/LJ-Speech-Dataset/">https://keithito.com/LJ-Speech-Dataset/</a>, 2017
+
+
+
+</body>
+
+</html>

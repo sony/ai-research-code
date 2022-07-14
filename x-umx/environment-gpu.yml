@@ -4,19 +4,19 @@ channels:
   - conda-forge
 
 dependencies:
-  - python=3.6
-  - numpy=1.16
-  - scikit-learn=0.21
-  - tqdm=4.28
-  - cudatoolkit=10.0
+  - python=3.8
+  - numpy
+  - tqdm
+  - cudatoolkit=11.0
   - cudnn
   - ffmpeg
   - libsndfile
   - pip:
     - musdb
+    - scikit-learn
     - norbert
     - resampy
     - nnabla
-    - nnabla-ext-cuda100
+    - nnabla-ext-cuda110
     - pydub
     - soundfile

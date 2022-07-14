@@ -43,7 +43,7 @@ After LSTM, the signal is decoded back to its original input dimensionality. In 
 ## Getting started
 
 ## Prerequisites
-* nnabla >= v1.19.0
+* nnabla >= v1.24.0
 * musdb
 * norbert
 * resampy

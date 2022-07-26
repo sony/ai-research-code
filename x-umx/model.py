@@ -323,8 +323,8 @@ class OpenUnmix_CrossNet(BaseClass):
                 pred_r, (4*nb_samples*nb_channels, self.nb_output_bins, nb_frames))
             pred_i = F.reshape(
                 pred_i, (4*nb_samples*nb_channels, self.nb_output_bins, nb_frames))
-            pred = F.istft(pred_r, pred_i, self.n_fft, self.n_hop,
-                           self.n_fft, window_type='hanning', center=True)
+            pred = F.istft(pred_r, pred_i, self.n_fft, self.n_hop, self.n_fft,
+                           window_type='hanning', center=True, pad_mode='constant')
             pred = F.reshape(pred, (4, nb_samples, nb_channels, -1))
         else:
             pred = None

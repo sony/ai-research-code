@@ -35,9 +35,9 @@ seed(42)
 
 def train():
     # Check NNabla version
-    if utils.get_nnabla_version_integer() < 11900:
+    if utils.get_nnabla_version_integer() < 12400:
         raise ValueError(
-            'Please update the nnabla version to v1.19.0 or latest version since memory efficiency of core engine is improved in v1.19.0')
+            'Please update the nnabla version to v1.24.0 or latest version since we have re-implemented STFT/ISTFT functions compatible with PyTorch in v1.24.0')
 
     parser, args = get_train_args()
 

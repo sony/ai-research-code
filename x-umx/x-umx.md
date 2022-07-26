@@ -26,7 +26,7 @@ from the original loss function of UMX. Hence, these three contributions, i.e., 
 ## Getting started
 
 ## Prerequisites
-* nnabla >= v1.19.0
+* nnabla >= v1.24.0
 * musdb
 * norbert
 * resampy

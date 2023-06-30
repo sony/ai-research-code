@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0% 15%;
+            padding: 50px 30px;
+            color: #111;
+            font-size: 17px;
+            font-family: sans-serif;
+            line-height: 1.8;
+        }
+
+        h1 {
+            font-size: 1.75em;
+        }
+
+        h2 {
+            margin-bottom: 0.4em;
+        }
+
+        hr {
+            height: 1px;
+            border-width: 0;
+            color: #ddd;
+            background-color: #ddd;
+        }
+
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        th:first-of-type, td:first-of-type {
+            width: 250px;
+        }
+
+        audio {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Towards Robust FastSpeech 2 by Modelling Residual Multimodality</h1>
+    <small>Fabian Kögel, Bac Nguyen, Fabien Cardinaux - Sony Europe B.V., Stuttgart Laboratory 1, Germany - Interspeech 2023</small><br><br>
+    <b>Abstract:</b> State-of-the-art non-autoregressive text-to-speech (TTS) models based on FastSpeech 2 can efficiently synthesise high-fidelity and natural speech. For expressive speech datasets however, we observe characteristic audio distortions. We demonstrate that such artefacts are introduced to the vocoder reconstruction by over-smooth mel-spectrogram predictions, which are induced by the choice of mean-squared-error (MSE) loss for training the mel-spectrogram decoder. With MSE loss FastSpeech 2 is limited to learn conditional averages of the training distribution, which might not lie close to a natural sample if the distribution still appears multimodal after all conditioning signals. To alleviate this problem, we introduce TVC-GMM, a mixture model of Trivariate-Chain Gaussian distributions, to model the residual multimodality. TVC-GMM reduces spectrogram smoothness and improves perceptual audio quality in particular for expressive datasets as shown by both objective and subjective evaluation.
+    <br><br>
+    <img src="img/residual_multimodality.png" style="max-width: 25%;"/>
+    <img src="img/tvcgmm.png" style="max-width: 25%;"/>
+    <hr>
+    <h3>Insufficient modelling degrades vocoder reconstruction quality (Section 4.2)</h3>
+    <img src="img/table_vocoder_reconstruction.png" style="max-width: 50%;"/>
+    <h4>LJSpeech - singlespeaker</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    Ground-Truth <br/>
+                    <audio src="audio_samples/gt/LJ001-0135.wav" controls preload="metadata"></audio>
+                </th>
+                <th>Griffin-Lim</th>
+                <th>HiFiGAN</th>
+                <th>HiFiGAN (finetuned)</th>
+                <th>MelGAN</th>
+                <th>CARGAN</th>
+                <th>WaveGlow</th>
+                <th>WaveRNN</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>GT Spectrogram Reconstruction</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td> + Smooth (metallic artefact)</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/smooth/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/smooth/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/smooth/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/smooth/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/smooth/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/smooth/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/smooth/LJ001-0135.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td> + Sharpen (bubbling artefact)</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/sharp/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/sharp/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/sharp/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/sharp/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/sharp/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/sharp/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/sharp/LJ001-0135.wav" controls preload="metadata"></audio></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h4>VCTK - multispeaker</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    Ground-Truth <br/>
+                    <audio src="audio_samples/gt/p227_244_mic2.wav" controls preload="metadata"></audio>
+                </th>
+                <th>Griffin-Lim</th>
+                <th>HiFiGAN</th>
+                <th>HiFiGAN (finetuned)</th>
+                <th>MelGAN</th>
+                <th>CARGAN</th>
+                <th>WaveGlow</th>
+                <th>WaveRNN</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>GT Spectrogram Reconstruction</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td> + Smooth (metallic artefact)</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/smooth/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/smooth/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/smooth/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/smooth/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/smooth/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/smooth/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/smooth/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td> + Sharpen (bubbling artefact)</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/sharp/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/sharp/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/sharp/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/sharp/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/sharp/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/sharp/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/sharp/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h4>LibriTTS - multispeaker</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    Ground-Truth <br/>
+                    <audio src="audio_samples/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio>
+                </th>
+                <th>Griffin-Lim</th>
+                <th>HiFiGAN</th>
+                <th>HiFiGAN (finetuned)</th>
+                <th>MelGAN</th>
+                <th>CARGAN</th>
+                <th>WaveGlow</th>
+                <th>WaveRNN</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>GT Spectrogram Reconstruction</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td> + Smooth (metallic artefact)</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/smooth/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/smooth/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/smooth/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/smooth/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/smooth/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/smooth/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/smooth/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td> + Sharpen (bubbling artefact)</td>
+                <td><audio src="audio_samples/vocoder_reconstruction/griffinlim/sharp/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan/sharp/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/hifigan-ft/sharp/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/melgan/sharp/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/cargan/sharp/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/waveglow/sharp/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/vocoder_reconstruction/wavernn/sharp/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <br><br>
+    <hr>
+    <h3>Speech synthesis with TVC-GMM improves perceptual audio quality (Section 4.4)</h3>
+    <img src="img/table_objective_eval.png" style="max-width: 25%;"/>
+    <img src="img/table_subjective_eval.png" style="max-width: 25%;"/>
+
+    <h4>LJSpeech - singlespeaker</h4>
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Ground-Truth</th>
+                <th>GT Reconstruction (HiFiGAN)</th>
+                <th>FastSpeech 2</th>
+                <th>TVC-GMM [k=1] naive</th>
+                <th>TVC-GMM [k=5] naive</th>
+                <th>TVC-GMM [k=1] cond.</th>
+                <th>TVC-GMM [k=5] cond.</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Sample 1</td>
+                <td><audio src="audio_samples/gt/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/LJ001-0135.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/LJ001-0135.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 2</td>
+                <td><audio src="audio_samples/gt/LJ004-0137.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/LJ004-0137.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/LJ004-0137.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/LJ004-0137.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/LJ004-0137.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/LJ004-0137.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/LJ004-0137.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 3</td>
+                <td><audio src="audio_samples/gt/LJ005-0067.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/LJ005-0067.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/LJ005-0067.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/LJ005-0067.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/LJ005-0067.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/LJ005-0067.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/LJ005-0067.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 4</td>
+                <td><audio src="audio_samples/gt/LJ006-0175.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/LJ006-0175.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/LJ006-0175.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/LJ006-0175.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/LJ006-0175.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/LJ006-0175.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/LJ006-0175.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 5</td>
+                <td><audio src="audio_samples/gt/LJ050-0145.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/LJ050-0145.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/LJ050-0145.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/LJ050-0145.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/LJ050-0145.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/LJ050-0145.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/LJ050-0145.wav" controls preload="metadata"></audio></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>VCTK - multispeaker</h4>
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Ground-Truth</th>
+                <th>GT Reconstruction (HiFiGAN)</th>
+                <th>FastSpeech 2</th>
+                <th>TVC-GMM [k=1] naive</th>
+                <th>TVC-GMM [k=5] naive</th>
+                <th>TVC-GMM [k=1] cond.</th>
+                <th>TVC-GMM [k=5] cond.</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Sample 1</td>
+                <td><audio src="audio_samples/gt/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/p227_244_mic2.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 2</td>
+                <td><audio src="audio_samples/gt/p239_084_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/p239_084_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/p239_084_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/p239_084_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/p239_084_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/p239_084_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/p239_084_mic2.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 3</td>
+                <td><audio src="audio_samples/gt/p259_322_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/p259_322_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/p259_322_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/p259_322_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/p259_322_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/p259_322_mic2.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/p259_322_mic2.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 4</td>
+                <td><audio src="audio_samples/gt/p334_373_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/p334_373_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/p334_373_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/p334_373_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/p334_373_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/p334_373_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/p334_373_mic1.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 5</td>
+                <td><audio src="audio_samples/gt/p343_007_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/p343_007_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/p343_007_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/p343_007_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/p343_007_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/p343_007_mic1.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/p343_007_mic1.wav" controls preload="metadata"></audio></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>LibriTTS - multispeaker</h4>
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Ground-Truth</th>
+                <th>GT Reconstruction (HiFiGAN)</th>
+                <th>FastSpeech 2</th>
+                <th>TVC-GMM [k=1] naive</th>
+                <th>TVC-GMM [k=5] naive</th>
+                <th>TVC-GMM [k=1] cond.</th>
+                <th>TVC-GMM [k=5] cond.</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Sample 1</td>
+                <td><audio src="audio_samples/gt/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/2393_144496_000015_000003.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 2</td>
+                <td><audio src="audio_samples/gt/2481_156738_000015_000002.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/2481_156738_000015_000002.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/2481_156738_000015_000002.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/2481_156738_000015_000002.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/2481_156738_000015_000002.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/2481_156738_000015_000002.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/2481_156738_000015_000002.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 3</td>
+                <td><audio src="audio_samples/gt/6233_61743_000035_000000.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/6233_61743_000035_000000.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/6233_61743_000035_000000.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/6233_61743_000035_000000.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/6233_61743_000035_000000.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/6233_61743_000035_000000.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/6233_61743_000035_000000.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 4</td>
+                <td><audio src="audio_samples/gt/8643_298549_000091_000005.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/8643_298549_000091_000005.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/8643_298549_000091_000005.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/8643_298549_000091_000005.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/8643_298549_000091_000005.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/8643_298549_000091_000005.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/8643_298549_000091_000005.wav" controls preload="metadata"></audio></td>
+            </tr>
+            <tr>
+                <td>Sample 5</td>
+                <td><audio src="audio_samples/gt/9022_282383_000009_000006.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/gt_reconstruction/9022_282383_000009_000006.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/fs2/9022_282383_000009_000006.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_naive/9022_282383_000009_000006.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_naive/9022_282383_000009_000006.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm1_conditional/9022_282383_000009_000006.wav" controls preload="metadata"></audio></td>
+                <td><audio src="audio_samples/synthesis/tvcgmm5_conditional/9022_282383_000009_000006.wav" controls preload="metadata"></audio></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <h3>References</h3>
+    Ground-Truth audio samples are taken from the respective datasets:
+    [1] [The LJ Speech dataset](https://keithito.com/LJ-Speech-Dataset), K. Ito and L. Johnson 2017
+    [2] [CSTR VCTK Corpus](https://datashare.ed.ac.uk/handle/10283/3443): English Multi-speaker Corpus for CSTR Voice Cloning Toolkit (version 0.92), Yamagishi et al. 2019
+    [3] [LibriTTS](https://research.google/tools/datasets/libri-tts): A Corpus Derived from LibriSpeech for Text-to-Speech, Zen et al. 2019
+
+</body>
+</html>

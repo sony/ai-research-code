@@ -42,7 +42,7 @@ Then access the demo in the browser at `localhost:<port>`
 
 ## Results
 
-Please see our [project page](https://sony.github.io/ai-research-code/tvcgmm) for audio samples and experiment results.
+Please see our [project page](https://sony.github.io/ai-research-code/tvc-gmm) for audio samples and experiment results.
 
 ## Citation
 

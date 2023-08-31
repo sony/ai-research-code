@@ -88,14 +88,14 @@ This is the official NNabla implementation of NVC-Net, an end-to-end adversarial
 
 Voice conversion has gained increasing popularity in many applications of speech synthesis. The idea is to change the voice identity from one speaker into another while keeping the linguistic content unchanged. Many voice conversion approaches rely on the use of a vocoder to reconstruct the speech from acoustic features, and as a consequence, the speech quality heavily depends on such a vocoder. In this paper, we propose NVC-Net, an end-to-end adversarial network, which performs voice conversion directly on the raw audio waveform of arbitrary length. By disentangling the speaker identity from the speech content, NVC-Net is able to perform non-parallel traditional many-to-many voice conversion as well as zero-shot voice conversion from a short utterance of an unseen target speaker. Importantly, NVC-Net is non-autoregressive and fully convolutional, achieving fast inference. Our model is capable of producing samples at a rate of more than 3600 kHz on an NVIDIA V100 GPU, being orders of magnitude faster than state-of-the-art methods under the same hardware configurations. Objective and subjective evaluations on non-parallel many-to-many voice conversion tasks show that NVC-Net obtains competitive results with significantly fewer parameters.
 
-### [**TVC-GMM: Towards Robust FastSpeech 2 by Modelling Residual Multimodality**](https://arxiv.org/abs/2306.01442) ([Code](./tvcgmm))
+### [**TVC-GMM: Towards Robust FastSpeech 2 by Modelling Residual Multimodality**](https://arxiv.org/abs/2306.01442) ([Code](./tvc-gmm))
 
 This is the official implementation of models and experiments for the [INTERSPEECH 2023 paper](https://arxiv.org/abs/2306.01442) "Towards Robust FastSpeech 2 by Modelling Residual Multimodality" (Kögel, Nguyen, Cardinaux 2023).
 
 This repository contains a PyTorch implementation of FastSpeech 2 with adapted variance predictors and Trivariate-Chain Gaussian Mixture Modelling (TVC-GMM) proposed in our paper.
 Additionally it contains scripts to export audio and calculate metrics to recreate the experiments presented in the paper.
 
-<img align="center" src="./tvcgmm/project_page/img/sony_adapted_fs2.png" style="width:800px;" />
+<img align="center" src="./tvc-gmm/project_page/img/sony_adapted_fs2.png" style="width:800px;" />
 
 State-of-the-art non-autoregressive text-to-speech (TTS) models based on FastSpeech 2 can efficiently synthesise high-fidelity and natural speech. For expressive speech datasets however, we observe characteristic audio distortions. We demonstrate that such artefacts are introduced to the vocoder reconstruction by over-smooth mel-spectrogram predictions, which are induced by the choice of mean-squared-error (MSE) loss for training the mel-spectrogram decoder. With MSE loss FastSpeech 2 is limited to learn conditional averages of the training distribution, which might not lie close to a natural sample if the distribution still appears multimodal after all conditioning signals. To alleviate this problem, we introduce TVC-GMM, a mixture model of Trivariate-Chain Gaussian distributions, to model the residual multimodality. TVC-GMM reduces spectrogram smoothness and improves perceptual audio quality in particular for expressive datasets as shown by both objective and subjective evaluation.
 

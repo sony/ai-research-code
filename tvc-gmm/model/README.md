@@ -1,6 +1,6 @@
 # Sony Adapted FastSpeech 2 + TVCGMM - PyTorch Implementation
 
-This is an adapted FastSpeech 2 pytorch implementation accompanying the paper [**Towards Robust FastSpeech 2 by Modelling Residual Multimodality**](https://sony.github.io/ai-research-code/tvcgmm).
+This is an adapted FastSpeech 2 pytorch implementation accompanying the paper [**Towards Robust FastSpeech 2 by Modelling Residual Multimodality**](https://sony.github.io/ai-research-code/tvc-gmm).
 It is based on the PyTorch implementations of Microsoft's text-to-speech system [**FastSpeech 2: Fast and High-Quality End-to-End Text to Speech**](https://arxiv.org/abs/2006.04558v1) by [Chien 2020](https://github.com/ming024/FastSpeech2) and [Liu 2020](https://github.com/xcmyz/FastSpeech).
 The hifigan implementation is taken from [Kong 2020](https://github.com/jik876/hifi-gan).
 
@@ -9,7 +9,7 @@ Along with bugfixes and code reorganization, two major changes have been introdu
 - Trivariate-Chain Gaussian Mixture Modelling (Loss: `model/loss.py`, Sampling: `interactive_tts.py`)
 
 ## Demo
-Audio samples of this implementation can be found [on its project page](https://sony.github.io/ai-research-code/tvcgmm).
+Audio samples of this implementation can be found [on its project page](https://sony.github.io/ai-research-code/tvc-gmm).
 After downloading the checkpoints and putting them into `output/ckpt/<checkpoint name>` an interactive demo server can be started with `python demo.py --checkpoint libritts_tvcgmm_k5 --device cpu --port 9000` and accessed in the browser at [localhost:9000](http://localhost:9000).
 
 ## Quickstart

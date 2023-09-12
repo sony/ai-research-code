@@ -1,2 +1,0 @@
-Copy or symlink the unmodified published datasets here (e.g. LibriTTS, LJSpeech, VCTK).
-The preprocessing pipeline will copy and transform them into the required format.

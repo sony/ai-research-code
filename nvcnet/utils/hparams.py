@@ -39,8 +39,8 @@ class HParams(object):
             try:
                 key, value = arg.split("=")
                 self.__dict__[key.strip()] = eval(value)
-            except Exception:
-                raise Exception('Syntax Error: Unexpected Expression')
+            except Exception as e:
+                raise Exception('Syntax Error: Unexpected Expression') from e
 
     def save(self, file_name):
         with open(file_name, 'w') as json_file:
